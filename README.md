@@ -57,8 +57,10 @@ This section outlines the structure of the project for documentation purposes, i
 ```bash
 QPROP-DISPATCHER/                               # Project root
 ├── components/                                 # Python script components
-│   ├── ConfigurationLoader.py                  # Responsible for loading and validating configuration file
-│   └── DynamicThrustModel.py                   # Responsible for preparing tasks, dispatching, and plotting
+│   ├── utils/                                  # Python script utilities
+│   │   └── type_aliases.py                     # Defines type aliases for readability
+│   ├── ConfigurationLoader.py                  # Loads and validates configuration file
+│   └── DynamicThrustModel.py                   # Prepares and dispatches tasks, plots data
 ├── motor_files/                                # Motor files
 │   └── ...
 ├── propeller_files/                            # Propeller files
