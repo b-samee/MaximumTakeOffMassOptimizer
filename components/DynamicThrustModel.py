@@ -30,7 +30,7 @@ class DynamicThrustModel:
         
         setpoint_copy = copy.deepcopy(self.run_configuration['setpoint'])
         setpoint_copy['voltage'] = numpy.multiply(setpoint_copy['voltage'], throttle)
-        setpoint_string = ' '.join([str(value) for value in setpoint_copy.values()])
+        setpoint_string = f'{setpoint_copy["velocity"]} {setpoint_copy["rpm"]} {setpoint_copy["voltage"]} {setpoint_copy["dbeta"]} {setpoint_copy["thrust"]} {setpoint_copy["torque"]} {setpoint_copy["current"]} {setpoint_copy["pele"]}'
         
         propeller_file = pairing['propeller']
         motor_file = pairing['motor']
