@@ -64,7 +64,6 @@ QPROP-DISPATCHER/                               # Project root
 ├── propeller_files/                            # Propeller files
 │   └── ...
 ├── .gitignore                                  # Gitignore file
-├── config.json                                 # Configuration file
 ├── LICENSE                                     # LICENSE file
 ├── main.py                                     # Main file of the script
 ├── qprop.exe                                   # QPROP executable dispatched by the script
