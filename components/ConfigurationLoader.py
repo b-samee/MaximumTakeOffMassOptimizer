@@ -35,7 +35,7 @@ class ConfigurationLoader(argparse.ArgumentParser):
             raise TypeError('configuration file must begin with a list')
         
         for run_configuration in json_data:
-            self.validate_run(self, run_configuration)
+            self.validate_run(run_configuration)
     
 
 
