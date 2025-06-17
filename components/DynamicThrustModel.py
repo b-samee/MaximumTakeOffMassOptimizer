@@ -24,7 +24,7 @@ class DynamicThrustModel:
     
     
     
-    def qprop_task(self, counter: multiprocessing.sharedctypes.Synchronized, pairing: Pairing, throttle: numpy.float64) -> None:
+    def qprop_task(self, counter: multiprocessing.sharedctypes.Synchronized, pairing: Pairing, throttle: numpy.float64, current_limit_exceeded_indicator: multiprocessing.sharedctypes.Synchronized) -> None:
         with counter.get_lock():
             counter.value = 1
         
@@ -55,6 +55,8 @@ class DynamicThrustModel:
         for current in output['current']:
             if current >= self.run_configuration['current_limit'] and throttle_limit is None:
                 throttle_limit = throttle
+                with current_limit_exceeded_indicator.get_lock():
+                    current_limit_exceeded_indicator.value = 1
         
         with counter.get_lock():
             counter.value = 3
@@ -67,8 +69,6 @@ class DynamicThrustModel:
     
     
     def run(self) -> None:
-        STATE_MESSAGES = ["Preparing Task", "Started Task", "Executing QPROP", "Generating Plots", "Finished Task"]
-        
         logger = logging.getLogger()
         
         n_pairing_tests = len(self.run_configuration['pairings'])
@@ -76,17 +76,21 @@ class DynamicThrustModel:
             pairing = self.run_configuration['pairings'][test_n]
             logger.info(f'Executing run {self.run_configuration["index"]} pairing {test_n+1}/{n_pairing_tests} ({pairing["propeller"].stem} x {pairing["motor"].stem})')
             
+            current_limit_exceeded_indicators: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_int64]] = list()
+            for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
+                current_limit_exceeded_indicators.append(multiprocessing.Value(ctypes.c_int64, 0))
+            
             counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_int64]] = list()
             for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
                 counters.append(multiprocessing.Value(ctypes.c_int64, 0))
             
             progress_bars: list[tqdm.tqdm] = list()
             for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
-                progress_bars.append(tqdm.tqdm(total=4, initial=0, position=i, desc=f'Process {i} - {STATE_MESSAGES[counters[i].value]}', leave=True))
+                progress_bars.append(tqdm.tqdm(total=4, initial=0, position=i, desc=f'Process {i} - {100*DynamicThrustModel.THROTTLE_SPACE[i]:>5.1f}% Throttle', leave=True))
             
             processes: list[multiprocessing.Process] = list()
             for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
-                processes.append(multiprocessing.Process(target=self.qprop_task, args=(counters[i], pairing, DynamicThrustModel.THROTTLE_SPACE[i])))
+                processes.append(multiprocessing.Process(target=self.qprop_task, args=(counters[i], pairing, DynamicThrustModel.THROTTLE_SPACE[i], current_limit_exceeded_indicators[i])))
             
             for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
                 processes[i].start()
@@ -96,7 +100,11 @@ class DynamicThrustModel:
                     with counter.get_lock():
                         progress_bars[i].n = counter.value
                         progress_bars[i].last_print_n = counter.value
-                        progress_bars[i].set_description(f'Process {i} - {STATE_MESSAGES[counter.value]}')
+                        with current_limit_exceeded_indicators[i].get_lock():
+                            if current_limit_exceeded_indicators[i].value > 0:
+                                progress_bars[i].set_postfix_str('LIMIT EXCEEDED')
+                            else:
+                                progress_bars[i].set_postfix_str('   LIMIT OK   ')
             
             for process in processes:
                 process.join()
