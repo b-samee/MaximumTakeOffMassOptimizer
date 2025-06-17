@@ -59,6 +59,7 @@ QPROP-DISPATCHER/                               # Project root
 ├── components/                                 # Python script components
 │   ├── utils/                                  # Python script utilities
 │   │   └── type_aliases.py                     # Defines type aliases for readability
+│   │   └── config_keys.py                      # Defines config keys for readability
 │   ├── ConfigurationLoader.py                  # Loads and validates configuration file
 │   └── DynamicThrustModel.py                   # Prepares and dispatches tasks, plots data
 ├── motor_files/                                # Motor files
