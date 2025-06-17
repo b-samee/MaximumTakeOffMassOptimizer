@@ -82,7 +82,7 @@ class DynamicThrustModel:
             
             progress_bars: list[tqdm.tqdm] = list()
             for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
-                progress_bars.append(tqdm.tqdm(total=4, initial=0, position=i, desc=f'Process {i}: {STATE_MESSAGES[counters[i].value]}', leave=True))
+                progress_bars.append(tqdm.tqdm(total=4, initial=0, position=i, desc=f'Process {i} - {STATE_MESSAGES[counters[i].value]}', leave=True))
             
             processes: list[multiprocessing.Process] = list()
             for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
@@ -96,7 +96,7 @@ class DynamicThrustModel:
                     with counter.get_lock():
                         progress_bars[i].n = counter.value
                         progress_bars[i].last_print_n = counter.value
-                        progress_bars[i].set_description(f'Process {i}: {STATE_MESSAGES[counter.value]}')
+                        progress_bars[i].set_description(f'Process {i} - {STATE_MESSAGES[counter.value]}')
             
             for process in processes:
                 process.join()
