@@ -13,6 +13,8 @@ import io
 from components.utils.type_aliases import RunConfiguration, Pairing
 
 class DynamicThrustModel:
+    THROTTLE_SPACE: numpy.ndarray[numpy.float64] = numpy.linspace(0.1, 1.0, 10)
+    
     run_configuration: RunConfiguration
     configuration_designation: str
     
@@ -74,21 +76,19 @@ class DynamicThrustModel:
             pairing = self.run_configuration['pairings'][test_n]
             logger.info(f'Executing run {self.run_configuration["index"]} pairing {test_n+1}/{n_pairing_tests} ({pairing["propeller"].stem} x {pairing["motor"].stem})')
             
-            throttle = numpy.linspace(0.1, 1.0, 10)
-            
             counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_int64]] = list()
-            for i in range(throttle.size):
+            for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
                 counters.append(multiprocessing.Value(ctypes.c_int64, 0))
             
             progress_bars: list[tqdm.tqdm] = list()
-            for i in range(throttle.size):
+            for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
                 progress_bars.append(tqdm.tqdm(total=4, initial=0, position=i, desc=f'Process {i}: {STATE_MESSAGES[counters[i].value]}', leave=True))
             
             processes: list[multiprocessing.Process] = list()
-            for i in range(throttle.size):
-                processes.append(multiprocessing.Process(target=self.qprop_task, args=(counters[i], pairing, throttle[i])))
+            for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
+                processes.append(multiprocessing.Process(target=self.qprop_task, args=(counters[i], pairing, DynamicThrustModel.THROTTLE_SPACE[i])))
             
-            for i in range(throttle.size):
+            for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
                 processes[i].start()
             
             while any(process.is_alive() for process in processes):
