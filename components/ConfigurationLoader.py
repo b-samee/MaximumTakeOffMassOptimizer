@@ -8,6 +8,7 @@ import components.utils.config_keys as CONFIG
 
 class ConfigurationLoader(argparse.ArgumentParser):
     run_configurations: list[RunConfiguration]
+    configuration_name: str
     
     def __init__(self) -> None:
         json_data = self.load_config()
@@ -26,6 +27,7 @@ class ConfigurationLoader(argparse.ArgumentParser):
         
         self.run_configurations = list()
         with open(json_path, 'r') as json_file:
+            self.configuration_name = json_path.stem
             return json.load(json_file)
 
 
@@ -34,8 +36,9 @@ class ConfigurationLoader(argparse.ArgumentParser):
         if type(json_data) != list:
             raise TypeError('configuration file must begin with a list')
         
-        for run_configuration in json_data:
+        for i, run_configuration in enumerate(json_data, 1):
             self.validate_run(run_configuration)
+            self.run_configurations[-1]['index'] = i
     
 
 
