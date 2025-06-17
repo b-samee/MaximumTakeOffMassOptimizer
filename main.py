@@ -9,10 +9,10 @@ def main() -> None:
     
     config = ConfigurationLoader()
 
-    for i, run_configuration in enumerate(config.run_configurations):
-        logger.info(f'EXECUTING RUN {i+1}/{len(config.run_configurations)}')
+    for i, run_configuration in enumerate(config.run_configurations, 1):
+        logger.info(f'EXECUTING RUN {i}/{len(config.run_configurations)}')
         model = DynamicThrustModel(run_configuration)
-        model.run()
+        model.run(i)
 
 if __name__ == '__main__':
     main()
