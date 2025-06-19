@@ -63,6 +63,9 @@ class ParallelBinaryOptimizer:
         while True:
             MASS_SPACE = numpy.linspace(minimum, maximum, self.n_processes)
             processes: list[multiprocessing.Process] = list()
+
+            PROCESS_PADDING = len(str(self.n_processes-1))
+            MASS_PADDING = max([len(f'{mass:.2f}') for mass in MASS_SPACE])
             
             for i in range(self.n_processes):
                 self.status_counters[i].value = 0
@@ -74,7 +77,7 @@ class ParallelBinaryOptimizer:
                 self.drag_counters[i].value = 0
                 
                 self.progress_bars[i].total = run_configuration.cutoff_displacement[0]
-                self.progress_bars[i].set_description_str(f'Process {i} | m = {MASS_SPACE[i]:.2f} kg |  [{ProcessStatus.FORKING_PROCESS}]')
+                self.progress_bars[i].set_description_str(f'Process {i:>{PROCESS_PADDING}} | m = {MASS_SPACE[i]:>{MASS_PADDING}.2f} kg | [{ProcessStatus.FORKING_PROCESS}]')
                 self.progress_bars[i].set_postfix_str(f't = 0 s | x = 0 m | v = 0 m/s | a = 0 m/s^2 | T = 0 N | D = 0 N')
                 
                 processes.append(
@@ -97,10 +100,17 @@ class ParallelBinaryOptimizer:
             for process in processes:
                 process.start()
             
+            local_time_counters = list()
+            local_position_counters = list()
+            local_velocity_counters = list()
+            local_acceleration_counters = list()
+            local_thrust_counters = list()
+            local_drag_counters = list()
+            
             while any(process.is_alive() for process in processes):
                 for i in range(self.n_processes):
                     with self.status_counters[i].get_lock():
-                        self.progress_bars[i].set_description_str(f'Process {i} | m = {MASS_SPACE[i]:.2f} kg |  [{ProcessStatus.get(self.status_counters[i].value)}]')
+                        self.progress_bars[i].set_description_str(f'Process {i:>{PROCESS_PADDING}} | m = {MASS_SPACE[i]:>{MASS_PADDING}.2f} kg | [{ProcessStatus.get(self.status_counters[i].value)}]')
                     with self.position_counters[i].get_lock():
                         self.progress_bars[i].n = int(min(self.position_counters[i].value, run_configuration.cutoff_displacement[0]))
                         self.progress_bars[i].last_print_n = int(min(self.position_counters[i].value, run_configuration.cutoff_displacement[0]))
@@ -109,19 +119,34 @@ class ParallelBinaryOptimizer:
                                 with self.time_counters[i].get_lock():
                                     with self.thrust_counters[i].get_lock():
                                         with self.drag_counters[i].get_lock():
-                                            self.progress_bars[i].set_postfix_str(
-                                                f't = {self.time_counters[i].value:.2f} s'
-                                                f' | '
-                                                f'x = {self.position_counters[i].value:.2f} m'
-                                                f' | '
-                                                f'v = {self.velocity_counters[i].value:.2f} m/s'
-                                                f' | '
-                                                f'a = {self.acceleration_counters[i].value:.2f} m/s^2'
-                                                f' | '
-                                                f'T = {self.thrust_counters[i].value:.2f} N'
-                                                f' | '
-                                                f'D = {self.drag_counters[i].value:.2f} N'
-                                            )
+                                            local_time_counters.append(f'{self.time_counters[i].value:.2f}')
+                                            local_position_counters.append(f'{self.position_counters[i].value:.2f}')
+                                            local_velocity_counters.append(f'{self.velocity_counters[i].value:.2f}')
+                                            local_acceleration_counters.append(f'{self.acceleration_counters[i].value:.2f}')
+                                            local_thrust_counters.append(f'{self.thrust_counters[i].value:.2f}')
+                                            local_drag_counters.append(f'{self.drag_counters[i].value:.2f}')
+                
+                TIME_COUNTER_PADDING = max([len(string) for string in local_time_counters])
+                POSITION_COUNTER_PADDING = max([len(string) for string in local_position_counters])
+                VELOCITY_COUNTER_PADDING = max([len(string) for string in local_velocity_counters])
+                ACCELERATION_COUNTER_PADDING = max([len(string) for string in local_acceleration_counters])
+                THRUST_COUNTER_PADDING = max([len(string) for string in local_thrust_counters])
+                DRAG_COUNTER_PADDING = max([len(string) for string in local_drag_counters])
+                
+                for i in range(self.n_processes):
+                    self.progress_bars[i].set_postfix_str(
+                        f't = {local_time_counters[i]:>{TIME_COUNTER_PADDING}} s'
+                        f' | '
+                        f'x = {local_position_counters[i]:>{POSITION_COUNTER_PADDING}} m'
+                        f' | '
+                        f'v = {local_velocity_counters[i]:>{VELOCITY_COUNTER_PADDING}} m/s'
+                        f' | '
+                        f'a = {local_acceleration_counters[i]:>{ACCELERATION_COUNTER_PADDING}} m/s^2'
+                        f' | '
+                        f'T = {local_thrust_counters[i]:>{THRUST_COUNTER_PADDING}} N'
+                        f' | '
+                        f'D = {local_drag_counters[i]:>{DRAG_COUNTER_PADDING}} N'
+                    )
             
             for process in processes:
                 process.join()
