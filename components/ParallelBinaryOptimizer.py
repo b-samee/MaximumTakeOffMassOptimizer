@@ -100,14 +100,14 @@ class ParallelBinaryOptimizer:
             for process in processes:
                 process.start()
             
-            local_time_counters = list()
-            local_position_counters = list()
-            local_velocity_counters = list()
-            local_acceleration_counters = list()
-            local_thrust_counters = list()
-            local_drag_counters = list()
-            
             while any(process.is_alive() for process in processes):
+                local_time_counters = list()
+                local_position_counters = list()
+                local_velocity_counters = list()
+                local_acceleration_counters = list()
+                local_thrust_counters = list()
+                local_drag_counters = list()
+                
                 for i in range(self.n_processes):
                     with self.status_counters[i].get_lock():
                         self.progress_bars[i].set_description_str(f'Process {i:>{PROCESS_PADDING}} | m = {MASS_SPACE[i]:>{MASS_PADDING}.2f} kg | [{ProcessStatus.get(self.status_counters[i].value)}]')
