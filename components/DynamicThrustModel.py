@@ -45,7 +45,7 @@ class DynamicThrustModel:
             drag.append(run_configuration.get_drag_force(velocity[-1]))
             
             with status_counter.get_lock():
-                status_counter.value = ProcessStatus.CALCULATING.value
+                status_counter.value = ProcessStatus.ITERATING_STATE.value
             
             acceleration.append((thrust[-1]-drag[-1]) / mass)
             velocity.append(velocity[-1] + acceleration[-1] * run_configuration.timestep_resolution)
@@ -53,7 +53,7 @@ class DynamicThrustModel:
             duration.append(duration[-1] + run_configuration.timestep_resolution)
             
             with status_counter.get_lock():
-                status_counter.value = ProcessStatus.UPDATING_COUNTERS.value
+                status_counter.value = ProcessStatus.UPDATING_COUNTS.value
 
             with position_counter.get_lock():
                 with velocity_counter.get_lock():
@@ -69,9 +69,18 @@ class DynamicThrustModel:
                                     drag_counter.value = drag[-1]
             
             with status_counter.get_lock():
-                status_counter.value = ProcessStatus.CHECKING_CONDITION.value
+                status_counter.value = ProcessStatus.CHECKING_LIMITS.value
             
-            if position[-1] > run_configuration.cutoff_displacement[0]:
+            if run_configuration.discard_conditions_time > 0 and duration[-1] >= run_configuration.discard_conditions_time:
                 with status_counter.get_lock():
-                    status_counter.value = ProcessStatus.ACCEPTED.value
+                    status_counter.value = ProcessStatus.EXCEED_DURATION.value
                     break
+            elif position[-1] > run_configuration.cutoff_displacement[0]:
+                if run_configuration.discard_conditions_velocity > 0 and velocity[-1] <= run_configuration.discard_conditions_velocity:
+                    with status_counter.get_lock():
+                        status_counter.value = ProcessStatus.LACKED_VELOCITY.value
+                        break
+                else:
+                    with status_counter.get_lock():
+                        status_counter.value = ProcessStatus.SUCCESS_TAKEOFF.value
+                        break
