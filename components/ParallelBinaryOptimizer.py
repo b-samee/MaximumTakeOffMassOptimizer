@@ -127,10 +127,10 @@ class ParallelBinaryOptimizer:
                 process.join()
             
             for i in range(self.n_processes):
-                if self.status_counters[i].value == ProcessStatus.SUCCESS_TAKEOFF.value and MASS_SPACE[i] > minimum:
+                if self.status_counters[i].value == ProcessStatus.SUCCESS_TAKEOFF.value and MASS_SPACE[i] >= minimum:
                     minimum = MASS_SPACE[i]
                     process_with_maximum_accepted_mass = i
-                if self.status_counters[self.n_processes-1-i].value > ProcessStatus.SUCCESS_TAKEOFF.value and MASS_SPACE[i] < maximum:
+                if self.status_counters[self.n_processes-1-i].value > ProcessStatus.SUCCESS_TAKEOFF.value and MASS_SPACE[i] <= maximum:
                     maximum = MASS_SPACE[i]
             
             takeoff_position_within_spec = self.position_counters[i].value > run_configuration.cutoff_displacement[0] and self.position_counters[i].value < run_configuration.cutoff_displacement[1]
