@@ -3,6 +3,7 @@ import multiprocessing
 import ctypes
 import numpy
 import tqdm
+import math
 
 from components.RunConfiguration import RunConfiguration
 from components.utils.process_statuses import ProcessStatus
@@ -32,6 +33,7 @@ class ParallelBinaryOptimizer:
         self.thrust_counters = list()
         self.drag_counters = list()
 
+        self.main_progress_indicator = tqdm.tqdm(bar_format='{desc} | Elapsed: {elapsed} | Epoch: {n} / ~{total}', desc=f'Optimizing for MTOW | Config: -', position=0, leave=True)
         self.progress_bars = list()
         
         for i in range(self.n_processes):
@@ -46,8 +48,7 @@ class ParallelBinaryOptimizer:
             self.progress_bars.append(
                 tqdm.tqdm(
                     total=0,
-                    initial=0,
-                    position=i,
+                    position=i+1,
                     desc=f'Process {i} | m = - kg |  [{ProcessStatus.OPTIMIZER_SETUP}]',
                     leave=True,
                     postfix=f't = 0 s | x = 0 m | v = 0 m/s | a = 0 m/s^2 | T = 0 N | D = 0 N'
@@ -59,6 +60,22 @@ class ParallelBinaryOptimizer:
 
         minimum = run_configuration.mass_range[0]
         maximum = run_configuration.mass_range[1]
+
+        config_identifier = run_configuration.identifier
+        config_masses = f'({", ".join(f"{mass_bound:.2f}" for mass_bound in run_configuration.mass_range)})'
+        config_displacements = f'({", ".join(f"{displacement_bound:.2f}" for displacement_bound in run_configuration.cutoff_displacement)})'
+        config_velocity = f'{run_configuration.discard_conditions_velocity:.2f}'
+        config_time = f'{run_configuration.discard_conditions_time:.2f}'
+        
+        mass_range = run_configuration.mass_range[1] - run_configuration.mass_range[0]
+        tolerance = run_configuration.cutoff_displacement[1] - run_configuration.cutoff_displacement[0]
+        intervals = self.n_processes-1
+        
+        self.main_progress_indicator.total = int(math.ceil(math.log((mass_range) / (tolerance), intervals)))
+        
+        self.main_progress_indicator.set_description_str(
+            f'Optimizing for MTOW | Config[{config_identifier}]: m={config_masses} kg ~ x={config_displacements} @ (v > {config_velocity}, t < {config_time})'
+        )
         
         while True:
             MASS_SPACE = numpy.linspace(minimum, maximum, self.n_processes)
@@ -101,6 +118,8 @@ class ParallelBinaryOptimizer:
                 process.start()
             
             while any(process.is_alive() for process in processes):
+                self.main_progress_indicator.refresh()
+                
                 local_time_counters = list()
                 local_position_counters = list()
                 local_velocity_counters = list()
@@ -161,6 +180,7 @@ class ParallelBinaryOptimizer:
                     maximum = MASS_SPACE[j]
             
             if process_with_maximum_accepted_mass is None:
+                self.main_progress_indicator.close()
                 for progress_bar in self.progress_bars:
                     progress_bar.close()
                 print('MINIMUM IS ABOVE MAXIMUM ALLOWABLE MASS')
@@ -170,12 +190,16 @@ class ParallelBinaryOptimizer:
                 takeoff_below_cutoff_upperbound = self.position_counters[process_with_maximum_accepted_mass].value < run_configuration.cutoff_displacement[1]
             
             if process_with_maximum_accepted_mass == self.n_processes-1:
+                self.main_progress_indicator.close()
                 for progress_bar in self.progress_bars:
                     progress_bar.close()
                 print('MAXIMUM IS BELOW MAXIMUM ALLOWABLE MASS')
                 return#! MAXIMUM IS BELOW MAXIMUM ALLOWABLE MASS
             elif takeoff_above_cutoff_lowerbound and takeoff_below_cutoff_upperbound:
+                self.main_progress_indicator.close()
                 for progress_bar in self.progress_bars:
                     progress_bar.close()
                 print('SUCCESS')
                 return#! SUCCESS!
+            
+            self.main_progress_indicator.update(1)
