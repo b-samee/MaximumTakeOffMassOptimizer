@@ -11,6 +11,8 @@ class RunConfiguration:
     timestep_resolution: numpy.float64
     mass_range: tuple[numpy.float64, numpy.float64]
     cutoff_displacement: tuple[numpy.float64, numpy.float64]
+    discard_conditions_velocity: numpy.float64
+    discard_conditions_time: numpy.float64
     setpoint_velocity: numpy.float64
     setpoint_voltage: numpy.float64
     setpoint_dbeta: numpy.float64
@@ -59,6 +61,10 @@ class RunConfiguration:
         self.cutoff_displacement = (numpy.float64(json_data['cutoff_displacement'][0]), numpy.float64(json_data['cutoff_displacement'][1]))
         if self.cutoff_displacement[0] > self.cutoff_displacement[1]:
             raise ValueError(f'minimum "cutoff_displacement" ({self.cutoff_displacement[0]}) cannot exceed maximum "cutoff_displacement" ({self.cutoff_displacement[1]})')
+        
+        self.discard_conditions_velocity = numpy.float64(0) if json_data['discard_conditions']['velocity'] is None else numpy.float64(json_data['discard_conditions']['velocity'])
+        
+        self.discard_conditions_time = numpy.float64(0) if json_data['discard_conditions']['time'] is None else numpy.float64(json_data['discard_conditions']['time'])
         
         self.setpoint_velocity = numpy.float64(0) if json_data['setpoint_parameters']['velocity'] is None else numpy.float64(json_data['setpoint_parameters']['velocity'])
         
