@@ -61,7 +61,7 @@ class ParallelBinaryOptimizer:
                 self.thrust_counters[i].value = 0
                 self.drag_counters[i].value = 0
                 
-                self.progress_bars[i].total = run_configuration.cutoff_displacement[1]
+                self.progress_bars[i].total = run_configuration.cutoff_displacement[0]
                 self.progress_bars[i].set_description_str(f'Process {i} | m = {MASS_SPACE[i]:.2f} kg |  [{ProcessStatus.STARTING}]')
                 self.progress_bars[i].set_postfix_str(f'x = 0 m | v = 0 m/s | a = 0 m/s^2 | T = 0 N | D = 0 N')
                 
@@ -89,8 +89,8 @@ class ParallelBinaryOptimizer:
                     with self.status_counters[i].get_lock():
                         self.progress_bars[i].set_description_str(f'Process {i} | m = {MASS_SPACE[i]:.2f} kg |  [{ProcessStatus.get(self.status_counters[i].value)}]')
                     with self.position_counters[i].get_lock():
-                        self.progress_bars[i].n = int(min(self.position_counters[i], self.takeoff_cutoff))
-                        self.progress_bars[i].last_print_n = int(min(self.position_counters[i], self.takeoff_cutoff))
+                        self.progress_bars[i].n = int(min(self.position_counters[i], run_configuration.cutoff_displacement[0]))
+                        self.progress_bars[i].last_print_n = int(min(self.position_counters[i], run_configuration.cutoff_displacement[0]))
                         with self.velocity_counters[i].get_lock():
                             with self.acceleration_counters[i].get_lock():
                                 with self.thrust_counters[i].get_lock():
@@ -117,7 +117,7 @@ class ParallelBinaryOptimizer:
                 if ProcessStatus.get(self.status_counters[self.n_processes-1-i]) == ProcessStatus.REJECTED and MASS_SPACE[i] < maximum:
                     maximum = MASS_SPACE[i]
             
-            takeoff_position_within_spec = self.position_counters[i] > self.takeoff_cutoff-tolerance and self.position_counters[i] < self.takeoff_cutoff
+            takeoff_position_within_spec = self.position_counters[i] > run_configuration.cutoff_displacement[0] and self.position_counters[i] < run_configuration.cutoff_displacement[1]
             if process_with_maximum_accepted_mass is None:
                 return#! MINIMUM IS ABOVE MAXIMUM ALLOWABLE MASS
             elif process_with_maximum_accepted_mass == self.n_processes-1:
