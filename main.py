@@ -2,9 +2,8 @@ import multiprocessing
 import argparse
 import pathlib
 import logging
-import json
 
-from components.utils.config_structure import get_config_structure, EXPECTED_CONFIGURATION_STRUCTURE
+from components.RunConfiguration import RunConfiguration
 from components.ParallelBinaryOptimizer import ParallelBinaryOptimizer
 
 def main() -> None:
@@ -23,20 +22,8 @@ def main() -> None:
     if args.processes > n_processes:
         raise ValueError(f'amount of processes to be forked ({args.processes}) exceed the number of logical processors remaining for forking ({n_processes})')
     
-    with open(json_path, 'r') as json_file:
-        json_data = json.load(json_file)
-    
-    json_structure = get_config_structure(json_data)
-    if json_structure != EXPECTED_CONFIGURATION_STRUCTURE:
-        raise SyntaxError(
-            f'structure of configuration file "{json_path}" is invalid\n'
-            f'\nGOT:\n\n'
-            f'{json_structure}\n'
-            f'\nEXPECTED:\n\n'
-            f'{EXPECTED_CONFIGURATION_STRUCTURE}\n'
-        )
-    
-    optimizer = ParallelBinaryOptimizer(args.processes, json_data)
+    run_configuration = RunConfiguration(json_path)
+    optimizer = ParallelBinaryOptimizer(args.processes, run_configuration)
     optimizer.run()
 
 if __name__ == '__main__':
