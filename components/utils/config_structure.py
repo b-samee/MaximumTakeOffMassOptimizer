@@ -5,14 +5,14 @@ EXPECTED_CONFIGURATION_STRUCTURE = {
     'mass_range': [(float, int), (float, int)],
     'cutoff_displacement': [(float, int), (float, int)],
     'setpoint_parameters': {
-        'velocity': (float, int),
+        'velocity': (None, float, int),
         'voltage': (float, int),
-        'dbeta': (float, int),
-        'current': (float, int),
-        'torque': (float, int),
-        'thrust': (float, int),
-        'pele': (float, int),
-        'rpm': (float, int)
+        'dbeta': (None, float, int),
+        'current': (None, float, int),
+        'torque': (None, float, int),
+        'thrust': (None, float, int),
+        'pele': (None, float, int),
+        'rpm': (None, float, int)
     },
     'drag_force': {
         'fluid_density': (float, int),
@@ -25,10 +25,11 @@ EXPECTED_CONFIGURATION_STRUCTURE = {
 def get_config_structure(json: object) -> object:
     def get_json_structure(json: object, origin_keys: list[str] = list()) -> object:
         if isinstance(json, dict):
-            result = {key: get_json_structure(value, [key]) for key, value in json.items()}
+            result = {key: get_json_structure(value, origin_keys + [key]) for key, value in json.items()}
         elif isinstance(json, list):
             result = list()
-            for value in json: result.append(get_json_structure(value, origin_keys))
+            for i, value in enumerate(json):
+                result.append(get_json_structure(value, [key for key in origin_keys] + [i]))
         elif json is None or isinstance(json, int) or isinstance(json, float):
             result = EXPECTED_CONFIGURATION_STRUCTURE
             try:
