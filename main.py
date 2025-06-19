@@ -5,6 +5,7 @@ import logging
 import json
 
 from components.utils.config_structure import get_config_structure, EXPECTED_CONFIGURATION_STRUCTURE
+from components.ParallelBinaryOptimizer import ParallelBinaryOptimizer
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
