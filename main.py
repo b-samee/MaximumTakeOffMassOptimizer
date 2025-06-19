@@ -34,6 +34,9 @@ def main() -> None:
             f'\nEXPECTED:\n\n'
             f'{EXPECTED_CONFIGURATION_STRUCTURE}\n'
         )
+    
+    optimizer = ParallelBinaryOptimizer(args.processes, json_data)
+    optimizer.run()
 
 if __name__ == '__main__':
     main()
