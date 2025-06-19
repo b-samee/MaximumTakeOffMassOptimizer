@@ -15,6 +15,7 @@ class ParallelBinaryOptimizer:
     position_counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_double]]
     velocity_counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_double]]
     acceleration_counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_double]]
+    time_counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_double]]
     thrust_counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_double]]
     drag_counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_double]]
     
@@ -28,6 +29,7 @@ class ParallelBinaryOptimizer:
             self.position_counters = list()
             self.velocity_counters = list()
             self.acceleration_counters = list()
+            self.time_counters = list()
             self.thrust_counters = list()
             self.drag_counters = list()
 
@@ -37,6 +39,7 @@ class ParallelBinaryOptimizer:
             self.position_counters.append(multiprocessing.Value(ctypes.c_double, 0))
             self.velocity_counters.append(multiprocessing.Value(ctypes.c_double, 0))
             self.acceleration_counters.append(multiprocessing.Value(ctypes.c_double, 0))
+            self.time_counters.append(multiprocessing.Value(ctypes.c_double, 0))
             self.thrust_counters.append(multiprocessing.Value(ctypes.c_double, 0))
             self.drag_counters.append(multiprocessing.Value(ctypes.c_double, 0))
             
@@ -58,6 +61,7 @@ class ParallelBinaryOptimizer:
                 self.position_counters[i].value = 0
                 self.velocity_counters[i].value = 0
                 self.acceleration_counters[i].value = 0
+                self.time_counters[i].value = 0
                 self.thrust_counters[i].value = 0
                 self.drag_counters[i].value = 0
                 
@@ -75,6 +79,7 @@ class ParallelBinaryOptimizer:
                             self.position_counters[i],
                             self.velocity_counters[i],
                             self.acceleration_counters[i],
+                            self.time_counters[i],
                             self.thrust_counters[i],
                             self.drag_counters[i],
                         )
@@ -93,19 +98,22 @@ class ParallelBinaryOptimizer:
                         self.progress_bars[i].last_print_n = int(min(self.position_counters[i], run_configuration.cutoff_displacement[0]))
                         with self.velocity_counters[i].get_lock():
                             with self.acceleration_counters[i].get_lock():
-                                with self.thrust_counters[i].get_lock():
-                                    with self.drag_counters[i].get_lock():
-                                        self.progress_bars[i].set_postfix_str(
-                                            f'x = {self.position_counters[i].value:.2f} m'
-                                            f' | '
-                                            f'v = {self.velocity_counters[i].value:.2f} m/s'
-                                            f' | '
-                                            f'a = {self.acceleration_counters[i].value:.2f} m/s^2'
-                                            f' | '
-                                            f'T = {self.thrust_counters[i].value:.2f} N'
-                                            f' | '
-                                            f'D = {self.drag_counters[i].value:.2f} N'
-                                        )
+                                with self.time_counters[i].get_lock():
+                                    with self.thrust_counters[i].get_lock():
+                                        with self.drag_counters[i].get_lock():
+                                            self.progress_bars[i].set_postfix_str(
+                                                f't = {self.time_counters[i].value:.2f} s'
+                                                f' | '
+                                                f'x = {self.position_counters[i].value:.2f} m'
+                                                f' | '
+                                                f'v = {self.velocity_counters[i].value:.2f} m/s'
+                                                f' | '
+                                                f'a = {self.acceleration_counters[i].value:.2f} m/s^2'
+                                                f' | '
+                                                f'T = {self.thrust_counters[i].value:.2f} N'
+                                                f' | '
+                                                f'D = {self.drag_counters[i].value:.2f} N'
+                                            )
             
             for process in processes:
                 process.join()
