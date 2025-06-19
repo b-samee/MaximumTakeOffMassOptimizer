@@ -2,9 +2,7 @@ import multiprocessing.sharedctypes
 import matplotlib.pyplot
 import multiprocessing
 import numpy
-import pathlib
 import subprocess
-import ctypes
 import io
 
 from components.RunConfiguration import RunConfiguration
