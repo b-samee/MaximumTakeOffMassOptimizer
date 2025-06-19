@@ -23,7 +23,7 @@ EXPECTED_CONFIGURATION_STRUCTURE = {
 }
 
 def get_config_structure(json: object) -> object:
-    def get_json_structure(json: object, origin_keys: list[str]) -> object:
+    def get_json_structure(json: object, origin_keys: list[str] = list()) -> object:
         if isinstance(json, dict):
             result = {key: get_json_structure(value, [key]) for key, value in json.items()}
         elif isinstance(json, list):
@@ -43,4 +43,4 @@ def get_config_structure(json: object) -> object:
         
         return result
     
-    json = get_json_structure(json)
+    return get_json_structure(json)
