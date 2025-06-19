@@ -75,7 +75,7 @@ class ParallelBinaryOptimizer:
         self.main_progress_indicator.total = int(math.ceil(math.log((mass_range) / (tolerance), intervals)))
         
         self.main_progress_indicator.set_description_str(
-            f'Optimizing for MTOW | Config[{config_identifier}]: m={config_masses} kg ~ x={config_displacements} @ (v > {config_velocity}, t < {config_time})'
+            f'Optimizing for MTOW | Config[{config_identifier}]: m={config_masses} kg ~ x={config_displacements} m @ (v > {config_velocity} m/s, t < {config_time} s)'
         )
         
         while True:
@@ -199,8 +199,8 @@ class ParallelBinaryOptimizer:
             progress_bar.close()
         
         if mass is None:
-            logging.error(f'MTOW cannot be found within the given range: the minimum mass provided is too high.')
+            logging.error(f'MTOM cannot be found within the given range: the minimum mass provided is too high.')
         elif mass < 0:
-            logging.warning(f'MTOW ({-mass*9.8067:.3f} N) was only found locally: the maximum mass provided is too low.')
+            logging.warning(f'MTOM ({-mass:.3f} kg) was only found locally: the maximum mass provided is too low.')
         else:
-            logging.info(f'MTOW ({mass*9.8067:.3f} N) was successfully found globally.')
+            logging.info(f'MTOM ({mass:.3f} kg) was successfully found globally.')
