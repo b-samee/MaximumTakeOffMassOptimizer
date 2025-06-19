@@ -10,37 +10,39 @@ This script was written in Python `3.13.3` and may require a version that is clo
 
 ## Runs and Configurations
 
-Each configuration file represents a set of runs, where each run is associated with specific parameters which apply to a set of pairing tests. The full structure of a typical configuration file is shown below. Runs and their tests are executed sequentially. Each test involves a sweep over 10 throttle steps to cover the full throttle range; this sweep is parallelized. The script was designed this way for future convenience. For most use cases, the configuration file will consist of a single run with a single pairing.
+Each run configuration file represents a plane-environment-constraints scenario and thus the input to an optimization (run) over that scenario. The exact `json` structure of a run configuration file is shown below, where `|` delimits options. A run configuration file must consist of this exact structure.
 
 ```py
 {
-    "propeller_file": str,
-    "motor_file": str,
-    "timestep_resolution": float | int,
-    "mass_range": [float | int, float | int],
-    "cutoff_displacement": [float | int, float | int],
+    "propeller_file": str,                                      # Path to propeller file
+    "motor_file": str,                                          # Path to motor file
+    "timestep_resolution": float | int,                         # Simulation time (s) step size
+    "mass_range": [float | int, float | int],                   # Mass (kg) range within which to search
+    "cutoff_displacement": [float | int, float | int],          # Cutoff distance (m) range for tolerance
     "discard_conditions": {
-        "velocity": None | float | int,
-        "time": None | float | int
+        "velocity": None | float | int,                         # Velocity (m/s) that must be exceeded by cutoff
+        "time": None | float | int                              # Time (s) that must not elapse by cutoff
     },
     "setpoint_parameters": {
-        "velocity": None | float | int,
-        "voltage": None | float | int,
-        "dbeta": None | float | int,
-        "current": None | float | int,
-        "torque": None | float | int,
-        "thrust": None | float | int,
-        "pele": None | float | int,
-        "rpm": None | float | int
+        "velocity": None | float | int,                         # Initial velocity (m/s)
+        "voltage": None | float | int,                          # Voltage (V)
+        "dbeta": None | float | int,                            # Pitch-change angle (deg)
+        "current": None | float | int,                          # Current (A)
+        "torque": None | float | int,                           # Torque (N·m)
+        "thrust": None | float | int,                           # Thrust (N)
+        "pele": None | float | int,                             # Pele (W)
+        "rpm": None | float | int                               # RPM (rpm)
     },
     "drag_force": {
-        "fluid_density": None | float | int,
-        "true_airspeed": None | float | int,
-        "drag_coefficient": None | float | int,
-        "reference_area": None | float | int
+        "fluid_density": None | float | int,                    # Fluid density (kg/m^3)
+        "true_airspeed": None | float | int,                    # True airspeed (m/s)
+        "drag_coefficient": None | float | int,                 # Drag coefficient
+        "reference_area": None | float | int                    # Reference area (m^2)
     }
 }
 ```
+
+For keys that can take `None`, setting `None` effectively means one of three things. For `discard_conditions`, it means that a process of the optimization should run until the takeoff distance is reached, rather than quitting early when it notices that a case it was given is hopeless in terms of velocity or time. For `setpoint_parameters`, it means that the setpoint parameter should be initialized to the default according to QPROP documentation. For a typical use of this tool, only voltage is set. For `drag_force`, it means that value should be treated as zero, except in the case of `true_airspeed`, where it denotes that the tool should dynamically calculate the velocity.
 
 ## Project Structure
 
