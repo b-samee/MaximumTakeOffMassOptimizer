@@ -17,11 +17,11 @@ Each run configuration file represents a plane-environment-constraints scenario 
     "propeller_file": str,                                      # Path to propeller file
     "motor_file": str,                                          # Path to motor file
     "timestep_resolution": float | int,                         # Simulation time (s) step size
-    "mass_range": [float | int, float | int],                   # Mass (kg) range within which to search
-    "cutoff_displacement": [float | int, float | int],          # Cutoff distance (m) range for tolerance
+    "mass_range": [float | int, float | int],                   # Mass (kg) range to search
+    "cutoff_displacement": [float | int, float | int],          # Cutoff distance (m) range
     "discard_conditions": {
-        "velocity": None | float | int,                         # Velocity (m/s) that must be exceeded by cutoff
-        "time": None | float | int                              # Time (s) that must not elapse by cutoff
+        "velocity": None | float | int,                         # Velocity before cutoff (m/s)
+        "time": None | float | int                              # Time after cutoff (s)
     },
     "setpoint_parameters": {
         "velocity": None | float | int,                         # Initial velocity (m/s)
@@ -30,7 +30,7 @@ Each run configuration file represents a plane-environment-constraints scenario 
         "current": None | float | int,                          # Current (A)
         "torque": None | float | int,                           # Torque (N·m)
         "thrust": None | float | int,                           # Thrust (N)
-        "pele": None | float | int,                             # Pele (W)
+        "pele": None | float | int,                             # Electrical Power (W)
         "rpm": None | float | int                               # RPM (rpm)
     },
     "drag_force": {
