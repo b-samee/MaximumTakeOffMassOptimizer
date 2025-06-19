@@ -1,6 +1,8 @@
-# QProp Dispatcher
+# Maximum Take-Off Mass Optimizer (MTOMO)
 
-QPROP is an analysis program for predicting the performance of propeller-motor or windmill-generator combinations. This script wraps [Mark Drela's QPROP tool](https://web.mit.edu/drela/Public/web/qprop/), starting out as a port of [robjds' Qprop_Matlab script](https://github.com/robjds/Qprop_Matlab) where it was modified to its current state. The script reads a json configuration file and dispatches QPROP processes to generate analysis data over the full throttle range in steps of 10%. The generated analysis data is tested against a current limit and plotted.
+QPROP is an analysis program for predicting the performance of propeller-motor or windmill-generator combinations under a specific state setpoint, snapshot in time. This script takes a run configuration that represents a plane-environment-constraints scenario and performs an optimization over the Maximum Take-Off Mass (MTOM) by forking processes executing [Mark Drela's QPROP tool](https://web.mit.edu/drela/Public/web/qprop/). If the MTOM is found, plots for $x(t)$, $v(t)$, $a(t)$, $F_T(t)$, and $F_D(t)$ are generated for the successful run as well as a performance curve over the entire optimization. The optimization is achieved via a parallel interval search, where the worst-case number of epochs required to arrive at a solution is as follows, where $N$ is the number of processes forked for the optimization, $R$ is the mass range, and $\epsilon$ is the takeoff distance tolerance.
+
+$$O\left(log_{N-1}\left(\frac{R}{\epsilon}\right)\right)$$
 
 ## Requirements and Running
 
@@ -10,44 +12,34 @@ This script was written in Python `3.13.3` and requires at least Python `3.9.x` 
 
 Each configuration file represents a set of runs, where each run is associated with specific parameters which apply to a set of pairing tests. The full structure of a typical configuration file is shown below. Runs and their tests are executed sequentially. Each test involves a sweep over 10 throttle steps to cover the full throttle range; this sweep is parallelized. The script was designed this way for future convenience. For most use cases, the configuration file will consist of a single run with a single pairing.
 
-```json
-// A CONFIGURATION REPRESENTS A SET OF RUNS
-[
-    // RUN_0
-    {
-        // EACH RUN IS ASSOCIATED WITH SPECIFIC PARAMETERS
-        "current_limit": 16,
-        "setpoint": {
-            "velocity": 2.0,    // OPTIONAL: WILL BE SET TO 0 IF NOT PROVIDED
-            "voltage": 8.4      // OPTIONAL: WILL BE SET TO 0 IF NOT PROVIDED
-        },
-        // AND THESE PARAMETERS APPLY TO A SET OF PAIRING TESTS
-        "pairings": [
-            { "propeller": "path/to/propeller/file", "motor": "path/to/motor/file" }
-        ]
+```py
+{
+    "propeller_file": str,
+    "motor_file": str,
+    "timestep_resolution": float | int,
+    "mass_range": [float | int, float | int],
+    "cutoff_displacement": [float | int, float | int],
+    "discard_conditions": {
+        "velocity": None | float | int,
+        "time": None | float | int
     },
-    ...
-    // RUN_N
-    {
-        // EACH RUN IS ASSOCIATED WITH SPECIFIC PARAMETERS
-        "current_limit": 16,
-        "setpoint": {
-            "velocity": 2.0,    // OPTIONAL: WILL BE SET TO 0 IF NOT PROVIDED
-            "voltage": 8.4,     // OPTIONAL: WILL BE SET TO 0 IF NOT PROVIDED
-            "dbeta": 0.0,       // OPTIONAL: WILL BE SET TO 0 IF NOT PROVIDED
-            "current": 0.0,     // OPTIONAL: WILL BE SET TO 0 IF NOT PROVIDED
-            "torque": 0.0,      // OPTIONAL: WILL BE SET TO 0 IF NOT PROVIDED
-            "thrust": 0.0,      // OPTIONAL: WILL BE SET TO 0 IF NOT PROVIDED
-            "pele": 0.0,        // OPTIONAL: WILL BE SET TO 0 IF NOT PROVIDED
-            "rpm": 0.0,         // OPTIONAL: WILL BE SET TO 0 IF NOT PROVIDED
-        },
-        // AND THESE PARAMETERS APPLY TO A SET OF PAIRING TESTS
-        "pairings": [
-            { "propeller": "path/to/propeller/file", "motor": "path/to/motor/file" },
-            { "propeller": "path/to/propeller/file", "motor": "path/to/motor/file" }
-        ]
+    "setpoint_parameters": {
+        "velocity": None | float | int,
+        "voltage": None | float | int,
+        "dbeta": None | float | int,
+        "current": None | float | int,
+        "torque": None | float | int,
+        "thrust": None | float | int,
+        "pele": None | float | int,
+        "rpm": None | float | int
+    },
+    "drag_force": {
+        "fluid_density": None | float | int,
+        "true_airspeed": None | float | int,
+        "drag_coefficient": None | float | int,
+        "reference_area": None | float | int
     }
-]
+}
 ```
 
 ## Project Structure
