@@ -1,16 +1,13 @@
 import enum
 
 class ProcessStatus(enum.Enum):
-    SLEEPING = 0
-    STARTING = enum.auto()
+    OPTIMIZER_SETUP = 0
+    FORKING_PROCESS = enum.auto()
     EXECUTING_QPROP = enum.auto()
     EXTRACTING_DATA = enum.auto()
-    CALCULATING = enum.auto()
-    UPDATING_COUNTERS = enum.auto()
-    CHECKING_CONDITION = enum.auto()
-    REJECTED = enum.auto()
-    ACCEPTED = enum.auto()
-
-    @classmethod
-    def get(cls, index: int):
-        return list(cls)[index]
+    ITERATING_STATE = enum.auto()
+    UPDATING_COUNTS = enum.auto()
+    CHECKING_LIMITS = enum.auto()
+    SUCCESS_TAKEOFF = enum.auto()
+    EXCEED_VELOCITY = enum.auto()
+    EXCEED_DURATION = enum.auto()
