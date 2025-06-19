@@ -1,5 +1,6 @@
 import multiprocessing.sharedctypes
 import multiprocessing
+import logging
 import ctypes
 import numpy
 import tqdm
@@ -180,26 +181,26 @@ class ParallelBinaryOptimizer:
                     maximum = MASS_SPACE[j]
             
             if process_with_maximum_accepted_mass is None:
-                self.main_progress_indicator.close()
-                for progress_bar in self.progress_bars:
-                    progress_bar.close()
-                print('MINIMUM IS ABOVE MAXIMUM ALLOWABLE MASS')
-                return#! MINIMUM IS ABOVE MAXIMUM ALLOWABLE MASS
+                return self.cleanup_return(None)
             else:
                 takeoff_above_cutoff_lowerbound = self.position_counters[process_with_maximum_accepted_mass].value > run_configuration.cutoff_displacement[0]
                 takeoff_below_cutoff_upperbound = self.position_counters[process_with_maximum_accepted_mass].value < run_configuration.cutoff_displacement[1]
             
             if process_with_maximum_accepted_mass == self.n_processes-1:
-                self.main_progress_indicator.close()
-                for progress_bar in self.progress_bars:
-                    progress_bar.close()
-                print('MAXIMUM IS BELOW MAXIMUM ALLOWABLE MASS')
-                return#! MAXIMUM IS BELOW MAXIMUM ALLOWABLE MASS
+                return self.cleanup_return(-MASS_SPACE[process_with_maximum_accepted_mass])
             elif takeoff_above_cutoff_lowerbound and takeoff_below_cutoff_upperbound:
-                self.main_progress_indicator.close()
-                for progress_bar in self.progress_bars:
-                    progress_bar.close()
-                print('SUCCESS')
-                return#! SUCCESS!
+                return self.cleanup_return(MASS_SPACE[process_with_maximum_accepted_mass])
             
             self.main_progress_indicator.update(1)
+    
+    def cleanup_return(self, mass: numpy.float64 | None) -> None:
+        self.main_progress_indicator.close()
+        for progress_bar in self.progress_bars:
+            progress_bar.close()
+        
+        if mass is None:
+            logging.error(f'MTOW cannot be found within the given range: the minimum mass provided is too high.')
+        elif mass < 0:
+            logging.warning(f'MTOW ({-mass*9.8067:.3f} N) was only found locally: the maximum mass provided is too low.')
+        else:
+            logging.info(f'MTOW ({mass*9.8067:.3f} N) was successfully found globally.')
