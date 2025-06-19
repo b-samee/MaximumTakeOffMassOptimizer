@@ -102,8 +102,8 @@ class ParallelBinaryOptimizer:
                     with self.status_counters[i].get_lock():
                         self.progress_bars[i].set_description_str(f'Process {i} | m = {MASS_SPACE[i]:.2f} kg |  [{ProcessStatus.get(self.status_counters[i].value)}]')
                     with self.position_counters[i].get_lock():
-                        self.progress_bars[i].n = int(min(self.position_counters[i], run_configuration.cutoff_displacement[0]))
-                        self.progress_bars[i].last_print_n = int(min(self.position_counters[i], run_configuration.cutoff_displacement[0]))
+                        self.progress_bars[i].n = int(min(self.position_counters[i].value, run_configuration.cutoff_displacement[0]))
+                        self.progress_bars[i].last_print_n = int(min(self.position_counters[i].value, run_configuration.cutoff_displacement[0]))
                         with self.velocity_counters[i].get_lock():
                             with self.acceleration_counters[i].get_lock():
                                 with self.time_counters[i].get_lock():
@@ -127,13 +127,13 @@ class ParallelBinaryOptimizer:
                 process.join()
             
             for i in range(self.n_processes):
-                if ProcessStatus.get(self.status_counters[i]) == ProcessStatus.ACCEPTED and MASS_SPACE[i] > minimum:
+                if ProcessStatus.get(self.status_counters[i].value) == ProcessStatus.ACCEPTED and MASS_SPACE[i] > minimum:
                     minimum = MASS_SPACE[i]
                     process_with_maximum_accepted_mass = i
                 if ProcessStatus.get(self.status_counters[self.n_processes-1-i]) == ProcessStatus.REJECTED and MASS_SPACE[i] < maximum:
                     maximum = MASS_SPACE[i]
             
-            takeoff_position_within_spec = self.position_counters[i] > run_configuration.cutoff_displacement[0] and self.position_counters[i] < run_configuration.cutoff_displacement[1]
+            takeoff_position_within_spec = self.position_counters[i].value > run_configuration.cutoff_displacement[0] and self.position_counters[i].value < run_configuration.cutoff_displacement[1]
             if process_with_maximum_accepted_mass is None:
                 return#! MINIMUM IS ABOVE MAXIMUM ALLOWABLE MASS
             elif process_with_maximum_accepted_mass == self.n_processes-1:
