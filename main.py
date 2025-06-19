@@ -29,9 +29,9 @@ def main() -> None:
     if json_structure != EXPECTED_CONFIGURATION_STRUCTURE:
         raise SyntaxError(
             f'structure of configuration file "{json_path}" is invalid\n'
-            f'GOT:\n'
+            f'\nGOT:\n\n'
             f'{json_structure}\n'
-            f'EXPECTED:\n'
+            f'\nEXPECTED:\n\n'
             f'{EXPECTED_CONFIGURATION_STRUCTURE}\n'
         )
 
