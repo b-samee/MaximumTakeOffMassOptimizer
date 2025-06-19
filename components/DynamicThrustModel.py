@@ -44,7 +44,7 @@ class DynamicThrustModel:
             data = numpy.loadtxt(data_stream, skiprows=17)
             
             thrust.append(data[:, 3][0])
-            drag.append(run_configuration.get_drag_force(velocity))
+            drag.append(run_configuration.get_drag_force(velocity[-1]))
             
             with status_counter.get_lock():
                 status_counter.value = ProcessStatus.CALCULATING.value
