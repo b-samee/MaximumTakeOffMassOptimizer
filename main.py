@@ -28,9 +28,10 @@ def main() -> None:
     json_structure = get_config_structure(json_data)
     if json_structure != EXPECTED_CONFIGURATION_STRUCTURE:
         raise SyntaxError(
-            f'structure of configuration file "{json_path}" is invalid:\n'
-            f'\t{json_structure}\n'
-            f'expected:\n'
+            f'structure of configuration file "{json_path}" is invalid\n'
+            f'GOT:\n'
+            f'{json_structure}\n'
+            f'EXPECTED:\n'
             f'\t{EXPECTED_CONFIGURATION_STRUCTURE}\n'
         )
 
