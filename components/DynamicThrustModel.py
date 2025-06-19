@@ -16,13 +16,13 @@ class DynamicThrustModel:
         cls,
         run_configuration: RunConfiguration,
         mass: numpy.float64,
-        status_counter: multiprocessing.sharedctypes.Synchronized[ctypes.c_byte],
-        position_counter: multiprocessing.sharedctypes.Synchronized[ctypes.c_double],
-        velocity_counter: multiprocessing.sharedctypes.Synchronized[ctypes.c_double],
-        acceleration_counter: multiprocessing.sharedctypes.Synchronized[ctypes.c_double],
-        time_counter: multiprocessing.sharedctypes.Synchronized[ctypes.c_double],
-        thrust_counter: multiprocessing.sharedctypes.Synchronized[ctypes.c_double],
-        drag_counter: multiprocessing.sharedctypes.Synchronized[ctypes.c_double]
+        status_counter: multiprocessing.sharedctypes.Synchronized,
+        position_counter: multiprocessing.sharedctypes.Synchronized,
+        velocity_counter: multiprocessing.sharedctypes.Synchronized,
+        acceleration_counter: multiprocessing.sharedctypes.Synchronized,
+        time_counter: multiprocessing.sharedctypes.Synchronized,
+        thrust_counter: multiprocessing.sharedctypes.Synchronized,
+        drag_counter: multiprocessing.sharedctypes.Synchronized
     ) -> None:
         duration = [numpy.float64(0.0)]
         acceleration = list()

@@ -11,13 +11,13 @@ from components.DynamicThrustModel import DynamicThrustModel
 class ParallelBinaryOptimizer:
     n_processes: int
     
-    status_counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_byte]]
-    position_counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_double]]
-    velocity_counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_double]]
-    acceleration_counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_double]]
-    time_counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_double]]
-    thrust_counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_double]]
-    drag_counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_double]]
+    status_counters: list[multiprocessing.sharedctypes.Synchronized]
+    position_counters: list[multiprocessing.sharedctypes.Synchronized]
+    velocity_counters: list[multiprocessing.sharedctypes.Synchronized]
+    acceleration_counters: list[multiprocessing.sharedctypes.Synchronized]
+    time_counters: list[multiprocessing.sharedctypes.Synchronized]
+    thrust_counters: list[multiprocessing.sharedctypes.Synchronized]
+    drag_counters: list[multiprocessing.sharedctypes.Synchronized]
     
     progress_bars: list[tqdm.tqdm]
     
