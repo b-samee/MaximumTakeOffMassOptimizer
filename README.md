@@ -42,7 +42,7 @@ Each run configuration file represents a plane-environment-constraints scenario 
 }
 ```
 
-For keys that can take `None`, setting `None` effectively means one of three things. For `discard_conditions`, it means that a process of the optimization should run until the takeoff distance is reached, rather than quitting early when it notices that a case it was given is hopeless in terms of velocity or time. For `setpoint_parameters`, it means that the setpoint parameter should be initialized to the default according to QPROP documentation. For a typical use of this tool, only voltage is set. For `drag_force`, it means that value should be treated as zero, except in the case of `true_airspeed`, where it denotes that the tool should dynamically calculate the velocity.
+For keys that can take `None`, setting `None` effectively means one of three things. For `discard_conditions`, it means that a process of the optimization should run until the takeoff distance is reached, rather than quitting early when it notices that a case it was given is hopeless in terms of `velocity` or `time`. The `velocity` parameter is the velocity that must be exceeded by the cutoff distance while the `time` parameter is the time that must not be reached by the cutoff distance. For `setpoint_parameters`, it means that the setpoint parameter should be initialized to the default according to QPROP documentation. For a typical use of this tool, only voltage is set. For `drag_force`, it means that value should be treated as zero, except in the case of `true_airspeed`, where it denotes that the tool should dynamically calculate the velocity.
 
 ## Project Structure
 
