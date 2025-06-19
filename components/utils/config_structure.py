@@ -5,14 +5,14 @@ EXPECTED_CONFIGURATION_STRUCTURE = {
     'mass_range': [(float, int), (float, int)],
     'cutoff_displacement': [(float, int), (float, int)],
     'setpoint_parameters': {
-        'velocity': (None, float, int),
+        'velocity': (float, int),
         'voltage': (float, int),
-        'dbeta': (None, float, int),
-        'current': (None, float, int),
-        'torque': (None, float, int),
-        'thrust': (None, float, int),
-        'pele': (None, float, int),
-        'rpm': (None, float, int)
+        'dbeta': (float, int),
+        'current': (float, int),
+        'torque': (float, int),
+        'thrust': (float, int),
+        'pele': (float, int),
+        'rpm': (float, int)
     },
     'drag_force': {
         'fluid_density': (float, int),
