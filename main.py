@@ -22,9 +22,10 @@ def main() -> None:
     if args.processes > n_processes:
         raise ValueError(f'amount of processes to be forked ({args.processes}) exceed the number of logical processors remaining for forking ({n_processes})')
     
+    optimizer = ParallelBinaryOptimizer(args.processes)
+    
     run_configuration = RunConfiguration(json_path)
-    optimizer = ParallelBinaryOptimizer(args.processes, run_configuration)
-    optimizer.run()
+    optimizer.run(run_configuration)
 
 if __name__ == '__main__':
     main()
