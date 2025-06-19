@@ -53,6 +53,8 @@ class RunConfiguration:
         self.mass_range = (numpy.float64(json_data['mass_range'][0]), numpy.float64(json_data['mass_range'][1]))
         if self.mass_range[0] > self.mass_range[1]:
             raise ValueError(f'minimum "mass_range" ({self.mass_range[0]}) cannot exceed maximum "mass_range" ({self.mass_range[1]})')
+        if self.mass_range[0] == 0:
+            raise ZeroDivisionError(f'mass cannot be 0')
         
         self.cutoff_displacement = (numpy.float64(json_data['cutoff_displacement'][0]), numpy.float64(json_data['cutoff_displacement'][1]))
         if self.cutoff_displacement[0] > self.cutoff_displacement[1]:
