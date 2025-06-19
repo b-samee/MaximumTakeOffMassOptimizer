@@ -4,11 +4,11 @@ import ctypes
 import numpy
 import tqdm
 
+from components.RunConfiguration import RunConfiguration
 from components.utils.process_statuses import ProcessStatus
 from components.DynamicThrustModel import DynamicThrustModel
 
 class ParallelBinaryOptimizer:
-    takeoff_cutoff: int
     n_processes: int
     
     status_counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_byte]]
@@ -20,8 +20,7 @@ class ParallelBinaryOptimizer:
     
     progress_bars: list[tqdm.tqdm]
     
-    def __init__(self, n_processes: int, takeoff_cutoff: int) -> None:
-        self.takeoff_cutoff = takeoff_cutoff
+    def __init__(self, n_processes: int) -> None:
         self.n_processes = n_processes
         
         for i in range(self.n_processes):
@@ -41,11 +40,14 @@ class ParallelBinaryOptimizer:
             self.thrust_counters.append(multiprocessing.Value(ctypes.c_double, 0))
             self.drag_counters.append(multiprocessing.Value(ctypes.c_double, 0))
             
-            self.progress_bars.append(tqdm.tqdm(total=takeoff_cutoff, initial=0, position=i, desc=f'Process {i} | m = - kg |  [{ProcessStatus.SLEEPING}]', leave=True))
+            self.progress_bars.append(tqdm.tqdm(total=0, initial=0, position=i, desc=f'Process {i} | m = - kg |  [{ProcessStatus.SLEEPING}]', leave=True))
             self.progress_bars[i].set_postfix_str(f'x = 0 m | v = 0 m/s | a = 0 m/s^2 | T = 0 N | D = 0 N')
     
-    def run(self, tolerance: numpy.float64, minimum: numpy.float64, maximum: numpy.float64) -> None:
+    def run(self, run_configuration: RunConfiguration) -> None:
         process_with_maximum_accepted_mass = None
+
+        minimum = run_configuration.mass_range[0]
+        maximum = run_configuration.mass_range[1]
         
         while True:
             MASS_SPACE = numpy.linspace(minimum, maximum, self.n_processes)
@@ -59,6 +61,7 @@ class ParallelBinaryOptimizer:
                 self.thrust_counters[i].value = 0
                 self.drag_counters[i].value = 0
                 
+                self.progress_bars[i].total = run_configuration.cutoff_displacement[1]
                 self.progress_bars[i].set_description_str(f'Process {i} | m = {MASS_SPACE[i]:.2f} kg |  [{ProcessStatus.STARTING}]')
                 self.progress_bars[i].set_postfix_str(f'x = 0 m | v = 0 m/s | a = 0 m/s^2 | T = 0 N | D = 0 N')
                 
@@ -66,6 +69,7 @@ class ParallelBinaryOptimizer:
                     multiprocessing.Process(
                         target=DynamicThrustModel.thrust_vs_time_given_mass,
                         args=(
+                            run_configuration,
                             MASS_SPACE[i],
                             self.status_counters[i],
                             self.position_counters[i],
