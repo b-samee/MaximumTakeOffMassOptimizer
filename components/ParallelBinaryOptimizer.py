@@ -43,8 +43,16 @@ class ParallelBinaryOptimizer:
             self.thrust_counters.append(multiprocessing.Value(ctypes.c_double, 0))
             self.drag_counters.append(multiprocessing.Value(ctypes.c_double, 0))
             
-            self.progress_bars.append(tqdm.tqdm(total=0, initial=0, position=i, desc=f'Process {i} | m = - kg |  [{ProcessStatus.SLEEPING}]', leave=True))
-            self.progress_bars[i].set_postfix_str(f't = 0 s | x = 0 m | v = 0 m/s | a = 0 m/s^2 | T = 0 N | D = 0 N')
+            self.progress_bars.append(
+                tqdm.tqdm(
+                    total=0,
+                    initial=0,
+                    position=i,
+                    desc=f'Process {i} | m = - kg |  [{ProcessStatus.SLEEPING}]',
+                    leave=True,
+                    postfix=f't = 0 s | x = 0 m | v = 0 m/s | a = 0 m/s^2 | T = 0 N | D = 0 N'
+                )
+            )
     
     def run(self, run_configuration: RunConfiguration) -> None:
         process_with_maximum_accepted_mass = None
