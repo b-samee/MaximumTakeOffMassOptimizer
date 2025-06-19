@@ -9,5 +9,5 @@ class ProcessStatus(enum.Enum):
     UPDATING_COUNTS = enum.auto()
     CHECKING_LIMITS = enum.auto()
     SUCCESS_TAKEOFF = enum.auto()
-    EXCEED_VELOCITY = enum.auto()
+    LACKED_VELOCITY = enum.auto()
     EXCEED_DURATION = enum.auto()
