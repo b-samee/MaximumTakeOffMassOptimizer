@@ -95,7 +95,7 @@ class ParallelBinaryOptimizer:
                 )
             
             for process in processes:
-                processes[i].start()
+                process.start()
             
             while any(process.is_alive() for process in processes):
                 for i in range(self.n_processes):

@@ -35,7 +35,7 @@ class DynamicThrustModel:
             with status_counter.get_lock():
                 status_counter.value = ProcessStatus.EXECUTING_QPROP.value
             
-            completed_process = subprocess.run(run_configuration.get_run_string(), capture_output=True, text=True)
+            completed_process = subprocess.run(run_configuration.get_run_string(velocity[-1]), capture_output=True, text=True)
             
             with status_counter.get_lock():
                 status_counter.value = ProcessStatus.EXTRACTING_DATA.value
