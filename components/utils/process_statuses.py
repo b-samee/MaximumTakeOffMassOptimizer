@@ -11,3 +11,7 @@ class ProcessStatus(enum.Enum):
     SUCCESS_TAKEOFF = enum.auto()
     LACKED_VELOCITY = enum.auto()
     EXCEED_DURATION = enum.auto()
+
+    @classmethod
+    def get(cls, index: int):
+        return list(cls)[index]
