@@ -84,3 +84,13 @@ class DynamicThrustModel:
                     with status_counter.get_lock():
                         status_counter.value = ProcessStatus.SUCCESS_TAKEOFF.value
                         break
+        
+        numpy.save(
+            f'{run_configuration.identifier}/{run_configuration.identifier}-{mass}.npz',
+            t=numpy.array(duration, dtype=numpy.float64),
+            a=numpy.array(acceleration, dtype=numpy.float64),
+            v=numpy.array(velocity, dtype=numpy.float64),
+            x=numpy.array(position, dtype=numpy.float64),
+            T=numpy.array(thrust, dtype=numpy.float64),
+            D=numpy.array(drag, dtype=numpy.float64)
+        )
