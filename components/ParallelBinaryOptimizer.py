@@ -24,17 +24,17 @@ class ParallelBinaryOptimizer:
     def __init__(self, n_processes: int) -> None:
         self.n_processes = n_processes
         
-        for i in range(self.n_processes):
-            self.status_counters = list()
-            self.position_counters = list()
-            self.velocity_counters = list()
-            self.acceleration_counters = list()
-            self.time_counters = list()
-            self.thrust_counters = list()
-            self.drag_counters = list()
+        self.status_counters = list()
+        self.position_counters = list()
+        self.velocity_counters = list()
+        self.acceleration_counters = list()
+        self.time_counters = list()
+        self.thrust_counters = list()
+        self.drag_counters = list()
 
-            self.progress_bars = list()
-            
+        self.progress_bars = list()
+        
+        for i in range(self.n_processes):
             self.status_counters.append(multiprocessing.Value(ctypes.c_byte, 0))
             self.position_counters.append(multiprocessing.Value(ctypes.c_double, 0))
             self.velocity_counters.append(multiprocessing.Value(ctypes.c_double, 0))
