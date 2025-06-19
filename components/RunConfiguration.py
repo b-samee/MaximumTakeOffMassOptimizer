@@ -51,8 +51,12 @@ class RunConfiguration:
         self.timestep_resolution = numpy.float64(json_data['timestep_resolution'])
 
         self.mass_range = (numpy.float64(json_data['mass_range'][0]), numpy.float64(json_data['mass_range'][1]))
+        if self.mass_range[0] > self.mass_range[1]:
+            raise ValueError(f'minimum "mass_range" ({self.mass_range[0]}) cannot exceed maximum "mass_range" ({self.mass_range[1]})')
         
         self.cutoff_displacement = (numpy.float64(json_data['cutoff_displacement'][0]), numpy.float64(json_data['cutoff_displacement'][1]))
+        if self.cutoff_displacement[0] > self.cutoff_displacement[1]:
+            raise ValueError(f'minimum "cutoff_displacement" ({self.cutoff_displacement[0]}) cannot exceed maximum "cutoff_displacement" ({self.cutoff_displacement[1]})')
         
         self.setpoint_velocity = numpy.float64(0) if json_data['setpoint_parameters']['velocity'] is None else numpy.float64(json_data['setpoint_parameters']['velocity'])
         
