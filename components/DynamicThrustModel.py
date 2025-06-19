@@ -86,7 +86,7 @@ class DynamicThrustModel:
                         break
         
         numpy.savez(
-            f'{run_configuration.identifier}/{run_configuration.identifier}-{mass}.npz',
+            f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}.npz',
             t=numpy.array(duration, dtype=numpy.float64),
             a=numpy.array(acceleration, dtype=numpy.float64),
             v=numpy.array(velocity, dtype=numpy.float64),
