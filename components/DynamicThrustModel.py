@@ -73,5 +73,5 @@ class DynamicThrustModel:
             with status_counter.get_lock():
                 status_counter.value = ProcessStatus.CHECKING_CONDITION.value
             
-            if position > run_configuration.cutoff_displacement[0]:
+            if position[-1] > run_configuration.cutoff_displacement[0]:
                 break
