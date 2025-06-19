@@ -4,115 +4,74 @@ import multiprocessing
 import numpy
 import pathlib
 import subprocess
-import copy
-import tqdm
 import ctypes
-import logging
 import io
 
-from components.utils.type_aliases import RunConfiguration, Pairing
+from components.RunConfiguration import RunConfiguration
+from components.utils.process_statuses import ProcessStatus
 
 class DynamicThrustModel:
-    THROTTLE_SPACE: numpy.ndarray[numpy.float64] = numpy.linspace(0.1, 1.0, 10)
-    
-    run_configuration: RunConfiguration
-    configuration_designation: str
-    
-    def __init__(self, run_configuration: RunConfiguration, configuration_designation: str) -> None:
-        self.run_configuration = run_configuration
-        self.configuration_designation = configuration_designation
-    
-    
-    
-    def qprop_task(self, counter: multiprocessing.sharedctypes.Synchronized, pairing: Pairing, throttle: numpy.float64, current_limit_exceeded_indicator: multiprocessing.sharedctypes.Synchronized) -> None:
-        with counter.get_lock():
-            counter.value = 1
+    @classmethod
+    def thrust_vs_time_given_mass(
+        cls,
+        run_configuration: RunConfiguration,
+        mass: numpy.float64,
+        status_counter: multiprocessing.sharedctypes.Synchronized[ctypes.c_byte],
+        position_counter: multiprocessing.sharedctypes.Synchronized[ctypes.c_double],
+        velocity_counter: multiprocessing.sharedctypes.Synchronized[ctypes.c_double],
+        acceleration_counter: multiprocessing.sharedctypes.Synchronized[ctypes.c_double],
+        time_counter: multiprocessing.sharedctypes.Synchronized[ctypes.c_double],
+        thrust_counter: multiprocessing.sharedctypes.Synchronized[ctypes.c_double],
+        drag_counter: multiprocessing.sharedctypes.Synchronized[ctypes.c_double]
+    ) -> None:
+        duration = [numpy.float64(0.0)]
+        acceleration = list()
+        velocity = [run_configuration.setpoint_velocity]
+        position = [numpy.float64(0.0)]
+        thrust = list()
+        drag = list()
         
-        setpoint_copy = copy.deepcopy(self.run_configuration['setpoint'])
-        setpoint_copy['voltage'] = numpy.multiply(setpoint_copy['voltage'], throttle)
-        setpoint_string = f'{setpoint_copy["velocity"]} {setpoint_copy["rpm"]} {setpoint_copy["voltage"]} {setpoint_copy["dbeta"]} {setpoint_copy["thrust"]} {setpoint_copy["torque"]} {setpoint_copy["current"]} {setpoint_copy["pele"]}'
-        
-        propeller_file = pairing['propeller']
-        motor_file = pairing['motor']
-        
-        with counter.get_lock():
-            counter.value = 2
-        
-        completed_process = subprocess.run(f'qprop {propeller_file} {motor_file} {setpoint_string}', capture_output=True, text=True)
-        data_stream = io.StringIO(completed_process.stdout)
-        data = numpy.loadtxt(data_stream, skiprows=17)
+        while True:
+            with status_counter.get_lock():
+                status_counter.value = ProcessStatus.EXECUTING_QPROP.value
+            
+            completed_process = subprocess.run(run_configuration.get_run_string(), capture_output=True, text=True)
+            
+            with status_counter.get_lock():
+                status_counter.value = ProcessStatus.EXTRACTING_DATA.value
+            
+            data_stream = io.StringIO(completed_process.stdout)
+            data = numpy.loadtxt(data_stream, skiprows=17)
+            
+            thrust.append(data[:, 3])
+            drag.append(run_configuration.get_drag_force(velocity))
+            
+            with status_counter.get_lock():
+                status_counter.value = ProcessStatus.CALCULATING.value
+            
+            acceleration.append((thrust[-1]-drag[-1]) / mass)
+            velocity.append(velocity[-1] + acceleration[-1] * run_configuration.timestep_resolution)
+            position.append(position[-1] + velocity[-1] * run_configuration.timestep_resolution)
+            duration.append(duration[-1] + run_configuration.timestep_resolution)
+            
+            with status_counter.get_lock():
+                status_counter.value = ProcessStatus.UPDATING_COUNTERS.value
 
-        output = {
-            'freestream': data[:, 0],
-            'rpm':        data[:, 1],
-            'thrust':     data[:, 3],
-            'torque':     data[:, 4],
-            'voltage':    data[:, 6],
-            'current':    data[:, 7],
-        }
-        
-        throttle_limit = None
-        for current in output['current']:
-            if current >= self.run_configuration['current_limit'] and throttle_limit is None:
-                throttle_limit = throttle
-                with current_limit_exceeded_indicator.get_lock():
-                    current_limit_exceeded_indicator.value = 1
-        
-        with counter.get_lock():
-            counter.value = 3
-        
-        self.plot(output, throttle_limit, propeller_file.stem, motor_file.stem)
-        
-        with counter.get_lock():
-            counter.value = 4
-    
-    
-    
-    def run(self) -> None:
-        logger = logging.getLogger()
-        
-        n_pairing_tests = len(self.run_configuration['pairings'])
-        for test_n in range(n_pairing_tests):
-            pairing = self.run_configuration['pairings'][test_n]
-            logger.info(f'Executing run {self.run_configuration["index"]} pairing {test_n+1}/{n_pairing_tests} ({pairing["propeller"].stem} x {pairing["motor"].stem})')
+            with position_counter.get_lock():
+                with velocity_counter.get_lock():
+                    with acceleration_counter.get_lock():
+                        with time_counter.get_lock():
+                            with thrust_counter.get_lock():
+                                with drag_counter.get_lock():
+                                    position_counter.value = position[-1]
+                                    velocity_counter.value = velocity[-1]
+                                    acceleration_counter.value = acceleration[-1]
+                                    time_counter.value = duration[-1]
+                                    thrust_counter.value = thrust[-1]
+                                    drag_counter.value = drag[-1]
             
-            current_limit_exceeded_indicators: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_int64]] = list()
-            for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
-                current_limit_exceeded_indicators.append(multiprocessing.Value(ctypes.c_int64, 0))
+            with status_counter.get_lock():
+                status_counter.value = ProcessStatus.CHECKING_CONDITION.value
             
-            counters: list[multiprocessing.sharedctypes.Synchronized[ctypes.c_int64]] = list()
-            for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
-                counters.append(multiprocessing.Value(ctypes.c_int64, 0))
-            
-            progress_bars: list[tqdm.tqdm] = list()
-            for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
-                progress_bars.append(tqdm.tqdm(total=4, initial=0, position=i, desc=f'Process {i} - {100*DynamicThrustModel.THROTTLE_SPACE[i]:>5.1f}% Throttle', leave=True))
-            
-            processes: list[multiprocessing.Process] = list()
-            for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
-                processes.append(multiprocessing.Process(target=self.qprop_task, args=(counters[i], pairing, DynamicThrustModel.THROTTLE_SPACE[i], current_limit_exceeded_indicators[i])))
-            
-            for i in range(DynamicThrustModel.THROTTLE_SPACE.size):
-                processes[i].start()
-            
-            while any(process.is_alive() for process in processes):
-                for i, counter in enumerate(counters):
-                    with counter.get_lock():
-                        progress_bars[i].n = counter.value
-                        progress_bars[i].last_print_n = counter.value
-                        with current_limit_exceeded_indicators[i].get_lock():
-                            if current_limit_exceeded_indicators[i].value > 0:
-                                progress_bars[i].set_postfix_str('LIMIT EXCEEDED')
-                            else:
-                                progress_bars[i].set_postfix_str('   LIMIT OK   ')
-            
-            for process in processes:
-                process.join()
-            
-            for progress_bar in progress_bars:
-                progress_bar.close()
-    
-    
-    
-    def plot(self, output: dict[str: numpy.ndarray], throttle_limit: numpy.float64, propeller: str, motor: str) -> None:
-        pass
+            if position > run_configuration.cutoff_displacement[0]:
+                break
