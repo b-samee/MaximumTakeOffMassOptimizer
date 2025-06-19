@@ -6,7 +6,7 @@ EXPECTED_CONFIGURATION_STRUCTURE = {
     'cutoff_displacement': [(float, int), (float, int)],
     'setpoint_parameters': {
         'velocity': (None, float, int),
-        'voltage': (float, int),
+        'voltage': (None, float, int),
         'dbeta': (None, float, int),
         'current': (None, float, int),
         'torque': (None, float, int),
@@ -15,10 +15,10 @@ EXPECTED_CONFIGURATION_STRUCTURE = {
         'rpm': (None, float, int)
     },
     'drag_force': {
-        'fluid_density': (float, int),
+        'fluid_density': (None, float, int),
         'true_airspeed': (None, float, int),
-        'drag_coefficient': (float, int),
-        'reference_area': (float, int)
+        'drag_coefficient': (None, float, int),
+        'reference_area': (None, float, int)
     }
 }
 
