@@ -5,6 +5,7 @@ import json
 from components.utils.config_structure import get_config_structure, EXPECTED_CONFIGURATION_STRUCTURE
 
 class RunConfiguration:
+    identifier: str
     variable_drag: bool
     propeller_file: pathlib.Path
     motor_file: pathlib.Path
@@ -26,7 +27,8 @@ class RunConfiguration:
     drag_force_drag_coefficient: numpy.float64
     drag_force_reference_area: numpy.float64
 
-    def __init__(self, json_path: str) -> None:
+    def __init__(self, json_path: pathlib.Path) -> None:
+        self.identifier = json_path.stem
         with open(json_path, 'r') as json_file:
             json_data = json.load(json_file)
         
