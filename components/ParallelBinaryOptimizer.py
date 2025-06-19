@@ -48,7 +48,7 @@ class ParallelBinaryOptimizer:
                     total=0,
                     initial=0,
                     position=i,
-                    desc=f'Process {i} | m = - kg |  [{ProcessStatus.SLEEPING}]',
+                    desc=f'Process {i} | m = - kg |  [{ProcessStatus.OPTIMIZER_SETUP}]',
                     leave=True,
                     postfix=f't = 0 s | x = 0 m | v = 0 m/s | a = 0 m/s^2 | T = 0 N | D = 0 N'
                 )
@@ -74,7 +74,7 @@ class ParallelBinaryOptimizer:
                 self.drag_counters[i].value = 0
                 
                 self.progress_bars[i].total = run_configuration.cutoff_displacement[0]
-                self.progress_bars[i].set_description_str(f'Process {i} | m = {MASS_SPACE[i]:.2f} kg |  [{ProcessStatus.STARTING}]')
+                self.progress_bars[i].set_description_str(f'Process {i} | m = {MASS_SPACE[i]:.2f} kg |  [{ProcessStatus.FORKING_PROCESS}]')
                 self.progress_bars[i].set_postfix_str(f't = 0 s | x = 0 m | v = 0 m/s | a = 0 m/s^2 | T = 0 N | D = 0 N')
                 
                 processes.append(
@@ -127,10 +127,10 @@ class ParallelBinaryOptimizer:
                 process.join()
             
             for i in range(self.n_processes):
-                if ProcessStatus.get(self.status_counters[i].value) == ProcessStatus.ACCEPTED and MASS_SPACE[i] > minimum:
+                if self.status_counters[i].value == ProcessStatus.SUCCESS_TAKEOFF.value and MASS_SPACE[i] > minimum:
                     minimum = MASS_SPACE[i]
                     process_with_maximum_accepted_mass = i
-                if ProcessStatus.get(self.status_counters[self.n_processes-1-i].value) == ProcessStatus.REJECTED and MASS_SPACE[i] < maximum:
+                if self.status_counters[self.n_processes-1-i].value > ProcessStatus.SUCCESS_TAKEOFF.value and MASS_SPACE[i] < maximum:
                     maximum = MASS_SPACE[i]
             
             takeoff_position_within_spec = self.position_counters[i].value > run_configuration.cutoff_displacement[0] and self.position_counters[i].value < run_configuration.cutoff_displacement[1]
