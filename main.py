@@ -32,7 +32,7 @@ def main() -> None:
             f'GOT:\n'
             f'{json_structure}\n'
             f'EXPECTED:\n'
-            f'\t{EXPECTED_CONFIGURATION_STRUCTURE}\n'
+            f'{EXPECTED_CONFIGURATION_STRUCTURE}\n'
         )
 
 if __name__ == '__main__':
