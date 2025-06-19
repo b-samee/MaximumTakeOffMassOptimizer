@@ -135,8 +135,17 @@ class ParallelBinaryOptimizer:
             
             takeoff_position_within_spec = self.position_counters[i].value > run_configuration.cutoff_displacement[0] and self.position_counters[i].value < run_configuration.cutoff_displacement[1]
             if process_with_maximum_accepted_mass is None:
+                for progress_bar in self.progress_bars:
+                    progress_bar.close()
+                print('MINIMUM IS ABOVE MAXIMUM ALLOWABLE MASS')
                 return#! MINIMUM IS ABOVE MAXIMUM ALLOWABLE MASS
             elif process_with_maximum_accepted_mass == self.n_processes-1:
+                for progress_bar in self.progress_bars:
+                    progress_bar.close()
+                print('MAXIMUM IS BELOW MAXIMUM ALLOWABLE MASS')
                 return#! MAXIMUM IS BELOW MAXIMUM ALLOWABLE MASS
             elif takeoff_position_within_spec:
+                for progress_bar in self.progress_bars:
+                    progress_bar.close()
+                print('SUCCESS')
                 return#! SUCCESS!
