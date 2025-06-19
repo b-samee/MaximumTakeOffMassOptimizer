@@ -49,13 +49,14 @@ For keys that can take `None`, setting `None` effectively means one of three thi
 This section outlines the structure of the project for documentation purposes, in case future patches must be applied.
 
 ```bash
-QPROP-DISPATCHER/                               # Project root
+MaximumTakeOffMassOptimizer/                    # Project root
 ├── components/                                 # Python script components
 │   ├── utils/                                  # Python script utilities
-│   │   └── type_aliases.py                     # Defines type aliases for readability
-│   │   └── config_keys.py                      # Defines config keys for readability
-│   ├── ConfigurationLoader.py                  # Loads and validates configuration file
-│   └── DynamicThrustModel.py                   # Prepares and dispatches tasks, plots data
+│   │   └── config_structure.py                 # Used to define and verify config structure
+│   │   └── process_statuses.py                 # Used to define process status enums
+│   ├── DynamicThrustModel.py                   # Represents the QPROP (slave) process
+│   ├── ParallelBinaryOptimizer.py              # Represents the optimizer (master) process
+│   └── RunConfiguration.py                     # Validates and encapsulates a run configuration
 ├── motor_files/                                # Motor files
 │   └── ...
 ├── propeller_files/                            # Propeller files
