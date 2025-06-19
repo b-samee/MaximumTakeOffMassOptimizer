@@ -10,7 +10,7 @@ from components.utils.process_statuses import ProcessStatus
 
 class DynamicThrustModel:
     @classmethod
-    def thrust_vs_time_given_mass(
+    def simulate_dynamics_given_mass(
         cls,
         run_configuration: RunConfiguration,
         mass: numpy.float64,

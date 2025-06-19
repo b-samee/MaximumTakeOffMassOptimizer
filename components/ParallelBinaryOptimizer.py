@@ -100,7 +100,7 @@ class ParallelBinaryOptimizer:
                 
                 processes.append(
                     multiprocessing.Process(
-                        target=DynamicThrustModel.thrust_vs_time_given_mass,
+                        target=DynamicThrustModel.simulate_dynamics_given_mass,
                         args=(
                             run_configuration,
                             MASS_SPACE[i],
