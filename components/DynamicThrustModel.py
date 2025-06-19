@@ -43,7 +43,7 @@ class DynamicThrustModel:
             data_stream = io.StringIO(completed_process.stdout)
             data = numpy.loadtxt(data_stream, skiprows=17)
             
-            thrust.append(data[:, 3])
+            thrust.append(data[:, 3][0])
             drag.append(run_configuration.get_drag_force(velocity))
             
             with status_counter.get_lock():
