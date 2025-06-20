@@ -200,11 +200,15 @@ class ParallelBinaryOptimizer:
         if mass is None:
             logging.error(f'MTOM cannot be found within the given range: the minimum mass provided is too high.')
         else:
-            if mass < 0:
-                mass = -mass
-                logging.warning(f'MTOM ({mass:.3f} kg) was only found locally: the maximum mass provided is too low.')
-            else:
-                logging.info(f'MTOM ({mass:.3f} kg) was successfully found globally.')
+            local_solution = mass < 0
+            if local_solution: mass = -mass
+            
+            stall_velocity = run_configuration.get_stall_velocity(mass)
+            
+            logging.info(f'STALL_VELOCITY = {stall_velocity:.2f} m/s | MTOM = {mass:.3f} kg')
+            
+            if local_solution:
+                logging.warning(f'* MTOM was only found locally: the maximum mass provided is too low.')
             
             best_run = numpy.load(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}.npz')
             time = best_run['t'][:-1]
@@ -249,5 +253,5 @@ class ParallelBinaryOptimizer:
             axes[2, 1].axis('off')
             
             matplotlib.pyplot.tight_layout()
-            matplotlib.pyplot.savefig(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}.png', dpi=300)
+            matplotlib.pyplot.savefig(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.3f}kg-{stall_velocity:.2f}mps.png', dpi=300)
             matplotlib.pyplot.close()
