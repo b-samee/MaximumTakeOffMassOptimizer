@@ -13,8 +13,6 @@ class RunConfiguration:
     timestep_resolution: numpy.float64
     mass_range: tuple[numpy.float64, numpy.float64]
     cutoff_displacement: tuple[numpy.float64, numpy.float64]
-    discard_conditions_velocity: numpy.float64
-    discard_conditions_time: numpy.float64
     setpoint_velocity: numpy.float64
     setpoint_voltage: numpy.float64
     setpoint_dbeta: numpy.float64
@@ -23,11 +21,13 @@ class RunConfiguration:
     setpoint_thrust: numpy.float64
     setpoint_pele: numpy.float64
     setpoint_rpm: numpy.float64
-    drag_force_fluid_density: numpy.float64
-    drag_force_true_airspeed: numpy.float64
-    drag_force_drag_coefficient: numpy.float64
-    drag_force_reference_area: numpy.float64
-
+    aerodynamic_forces_fluid_density: numpy.float64
+    aerodynamic_forces_true_airspeed: numpy.float64
+    aerodynamic_forces_drag_coefficient: numpy.float64
+    aerodynamic_forces_reference_area: numpy.float64
+    aerodynamic_forces_acceleration_gravity: numpy.float64
+    aerodynamic_forces_lift_coefficient: numpy.float64
+    
     def __init__(self, json_path: pathlib.Path) -> None:
         self.identifier = json_path.stem
         
@@ -49,7 +49,7 @@ class RunConfiguration:
                 f'{EXPECTED_CONFIGURATION_STRUCTURE}\n'
             )
         
-        self.variable_drag = json_data['drag_force']['true_airspeed'] is None
+        self.variable_drag = json_data['aerodynamic_forces']['true_airspeed'] is None
 
         self.propeller_file = pathlib.Path(json_data['propeller_file'])
         if not self.propeller_file.exists():
@@ -71,10 +71,6 @@ class RunConfiguration:
         if self.cutoff_displacement[0] > self.cutoff_displacement[1]:
             raise ValueError(f'minimum "cutoff_displacement" ({self.cutoff_displacement[0]}) cannot exceed maximum "cutoff_displacement" ({self.cutoff_displacement[1]})')
         
-        self.discard_conditions_velocity = numpy.float64(0) if json_data['discard_conditions']['velocity'] is None else numpy.float64(json_data['discard_conditions']['velocity'])
-        
-        self.discard_conditions_time = numpy.float64(0) if json_data['discard_conditions']['time'] is None else numpy.float64(json_data['discard_conditions']['time'])
-        
         self.setpoint_velocity = numpy.float64(0) if json_data['setpoint_parameters']['velocity'] is None else numpy.float64(json_data['setpoint_parameters']['velocity'])
         
         self.setpoint_voltage = numpy.float64(0) if json_data['setpoint_parameters']['voltage'] is None else numpy.float64(json_data['setpoint_parameters']['voltage'])
@@ -91,16 +87,22 @@ class RunConfiguration:
 
         self.setpoint_rpm = numpy.float64(0) if json_data['setpoint_parameters']['rpm'] is None else numpy.float64(json_data['setpoint_parameters']['rpm'])
         
-        self.drag_force_fluid_density = numpy.float64(0) if json_data['drag_force']['fluid_density'] is None else numpy.float64(json_data['drag_force']['fluid_density'])
+        self.aerodynamic_forces_fluid_density = numpy.float64(0) if json_data['aerodynamic_forces']['fluid_density'] is None else numpy.float64(json_data['aerodynamic_forces']['fluid_density'])
         
-        self.drag_force_true_airspeed = numpy.float64(0) if json_data['drag_force']['true_airspeed'] is None else numpy.float64(json_data['drag_force']['true_airspeed'])
+        self.aerodynamic_forces_true_airspeed = numpy.float64(0) if json_data['aerodynamic_forces']['true_airspeed'] is None else numpy.float64(json_data['aerodynamic_forces']['true_airspeed'])
         
-        self.drag_force_drag_coefficient = numpy.float64(0) if json_data['drag_force']['drag_coefficient'] is None else numpy.float64(json_data['drag_force']['drag_coefficient'])
+        self.aerodynamic_forces_drag_coefficient = numpy.float64(0) if json_data['aerodynamic_forces']['drag_coefficient'] is None else numpy.float64(json_data['aerodynamic_forces']['drag_coefficient'])
 
-        self.drag_force_reference_area = numpy.float64(0) if json_data['drag_force']['reference_area'] is None else numpy.float64(json_data['drag_force']['reference_area'])
+        self.aerodynamic_forces_reference_area = numpy.float64(0) if json_data['aerodynamic_forces']['reference_area'] is None else numpy.float64(json_data['aerodynamic_forces']['reference_area'])
+        
+        self.aerodynamic_forces_acceleration_gravity = numpy.float64(9.81) if json_data['aerodynamic_forces']['acceleration_gravity'] is None else numpy.float64(json_data['aerodynamic_forces']['acceleration_gravity'])
+        
+        self.aerodynamic_forces_lift_coefficient = numpy.float64(1.0) if json_data['aerodynamic_forces']['lift_coefficient'] is None else numpy.float64(json_data['aerodynamic_forces']['lift_coefficient'])
+        if self.aerodynamic_forces_lift_coefficient == 0:
+            raise ZeroDivisionError(f'lift_coefficient cannot be 0')
     
     def get_run_string(self, velocity: numpy.float64) -> str:
         return f'qprop {self.propeller_file} {self.motor_file} {velocity} {self.setpoint_rpm} {self.setpoint_voltage} {self.setpoint_dbeta} {self.setpoint_thrust} {self.setpoint_torque} {self.setpoint_current} {self.setpoint_pele}'
     
     def get_drag_force(self, velocity: numpy.float64) -> numpy.float64:
-        return numpy.float64(0.5) * self.drag_force_fluid_density * numpy.power(velocity if self.variable_drag else self.drag_force_true_airspeed, 2, dtype=numpy.float64) * self.drag_force_drag_coefficient * self.drag_force_reference_area
+        return numpy.float64(0.5) * self.aerodynamic_forces_fluid_density * numpy.power(velocity if self.variable_drag else self.aerodynamic_forces_true_airspeed, 2, dtype=numpy.float64) * self.aerodynamic_forces_drag_coefficient * self.aerodynamic_forces_reference_area
