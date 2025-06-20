@@ -31,8 +31,8 @@ Each run configuration file represents a plane-environment-constraints scenario 
         "fluid_density": None | float | int,                    # Fluid density (kg/m^3)
         "true_airspeed": None | float | int,                    # True airspeed (m/s)
         "drag_coefficient": None | float | int,                 # Drag coefficient
-        "reference_area": None | float | int                    # Reference area (m^2)
-        "acceleration_gravity": None | float | int              # Acceleration due to gravity (m/s^2)
+        "reference_area": None | float | int,                   # Reference area (m^2)
+        "acceleration_gravity": None | float | int,             # Acceleration due to gravity (m/s^2)
         "lift_coefficient": None | float | int                  # Lift coefficient
     }
 }
