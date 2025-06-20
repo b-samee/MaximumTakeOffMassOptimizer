@@ -1,6 +1,7 @@
 import multiprocessing.sharedctypes
 import matplotlib.pyplot
 import multiprocessing
+import pathlib
 import logging
 import ctypes
 import numpy
@@ -215,6 +216,10 @@ class ParallelBinaryOptimizer:
             position = best_run['x'][:-1]
             thrust = best_run['T']
             drag = best_run['D']
+            
+            all_runs = list(pathlib.Path(run_configuration.identifier).rglob('*.npz'))
+            for run in all_runs:
+                run.unlink()
             
             _, axes = matplotlib.pyplot.subplots(3, 2, figsize=(10, 8))
             
