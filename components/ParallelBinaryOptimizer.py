@@ -224,13 +224,12 @@ class ParallelBinaryOptimizer:
             performance_characteristics = list()
             for run_file_path in run_file_paths:
                 run_data = numpy.load(run_file_path)
-                performance_characteristics.append((run_data['mass'], run_data['stall_velocity'], run_data['v'][-2], run_data['x'][-2]))
+                performance_characteristics.append((run_data['mass'], run_data['stall_velocity'], run_data['v'][-2]))
             
             performance_characteristics.sort(key=lambda e: e[0])
-            masses, stall_velocities, velocities, positions = zip(*performance_characteristics)
+            masses, stall_velocities, velocities = zip(*performance_characteristics)
             stall_velocities = numpy.array(stall_velocities, dtype=numpy.float64)
             velocities = numpy.array(velocities, dtype=numpy.float64)
-            positions = numpy.array(positions, dtype=numpy.float64)
             masses = numpy.array(masses, dtype=numpy.float64)
             
             _, axes = matplotlib.pyplot.subplots(3, 2, figsize=(10, 8))
@@ -267,7 +266,6 @@ class ParallelBinaryOptimizer:
 
             axes[2, 1].plot(masses, velocities, label='Velocity', color='black')
             axes[2, 1].plot(masses, stall_velocities, label='Stall Velocity', color='red', linestyle='--')
-            axes[2, 1].plot(masses, positions, label='Position', color='blue', linestyle='--')
             axes[2, 1].set_title('Performance Curve')
             axes[2, 1].set_xlabel('Mass (kg)')
             axes[2, 1].set_ylabel('Velocity (m/s)')
