@@ -264,7 +264,7 @@ class ParallelBinaryOptimizer:
             axes[2, 0].set_ylabel('Drag (N)')
             axes[2, 0].grid(True)
 
-            axes[2, 1].plot(masses, velocities, label='Velocity', color='black')
+            axes[2, 1].plot(masses, velocities, label='Final Velocity', color='black')
             axes[2, 1].plot(masses, stall_velocities, label='Stall Velocity', color='red', linestyle='--')
             axes[2, 1].set_title('Performance Curve')
             axes[2, 1].set_xlabel('Mass (kg)')
