@@ -1,5 +1,4 @@
 import multiprocessing.sharedctypes
-import matplotlib.pyplot
 import multiprocessing
 import numpy
 import subprocess

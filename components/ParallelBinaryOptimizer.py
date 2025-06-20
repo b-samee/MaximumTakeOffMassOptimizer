@@ -1,4 +1,5 @@
 import multiprocessing.sharedctypes
+import matplotlib.pyplot
 import multiprocessing
 import logging
 import ctypes
@@ -181,26 +182,78 @@ class ParallelBinaryOptimizer:
                     maximum = MASS_SPACE[j]
             
             if process_with_maximum_accepted_mass is None:
-                return self.cleanup_return(None)
+                return self.cleanup_return()
             else:
                 takeoff_above_cutoff_lowerbound = self.position_counters[process_with_maximum_accepted_mass].value > run_configuration.cutoff_displacement[0]
                 takeoff_below_cutoff_upperbound = self.position_counters[process_with_maximum_accepted_mass].value < run_configuration.cutoff_displacement[1]
             
             if process_with_maximum_accepted_mass == self.n_processes-1:
-                return self.cleanup_return(-MASS_SPACE[process_with_maximum_accepted_mass])
+                return self.cleanup_return(-MASS_SPACE[process_with_maximum_accepted_mass], run_configuration)
             elif takeoff_above_cutoff_lowerbound and takeoff_below_cutoff_upperbound:
-                return self.cleanup_return(MASS_SPACE[process_with_maximum_accepted_mass])
+                return self.cleanup_return(MASS_SPACE[process_with_maximum_accepted_mass], run_configuration)
             
             self.main_progress_indicator.update(1)
     
-    def cleanup_return(self, mass: numpy.float64 | None) -> None:
+    def cleanup_return(self, mass: numpy.float64 | None = None, run_configuration: RunConfiguration | None = None) -> None:
         self.main_progress_indicator.close()
         for progress_bar in self.progress_bars:
             progress_bar.close()
         
         if mass is None:
             logging.error(f'MTOM cannot be found within the given range: the minimum mass provided is too high.')
-        elif mass < 0:
-            logging.warning(f'MTOM ({-mass:.3f} kg) was only found locally: the maximum mass provided is too low.')
         else:
-            logging.info(f'MTOM ({mass:.3f} kg) was successfully found globally.')
+            if mass < 0:
+                mass = -mass
+                logging.warning(f'MTOM ({mass:.3f} kg) was only found locally: the maximum mass provided is too low.')
+            else:
+                logging.info(f'MTOM ({mass:.3f} kg) was successfully found globally.')
+            
+            best_run = numpy.load(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}.npz')
+            time = best_run['t'][:-1]
+            acceleration = best_run['a']
+            velocity = best_run['v'][:-1]
+            position = best_run['x'][:-1]
+            thrust = best_run['T']
+            drag = best_run['D']
+            
+            _, axes = matplotlib.pyplot.subplots(3, 2, figsize=(10, 8))
+            
+            axes[0, 0].plot(time, position, label='Position', color='black')
+            axes[0, 0].set_title('Position vs Time')
+            axes[0, 0].set_xlabel('Time (s)')
+            axes[0, 0].set_ylabel('Position (m)')
+            axes[0, 0].grid(True)
+
+            axes[0, 1].plot(time, velocity, label='Velocity', color='black')
+            axes[0, 1].set_title('Velocity vs Time')
+            axes[0, 1].set_xlabel('Time (s)')
+            axes[0, 1].set_ylabel('Velocity (m/s)')
+            axes[0, 1].grid(True)
+
+            axes[1, 0].plot(time, acceleration, label='Acceleration', color='black')
+            axes[1, 0].set_title('Acceleration vs Time')
+            axes[1, 0].set_xlabel('Time (s)')
+            axes[1, 0].set_ylabel('Acceleration (m/s^2)')
+            axes[1, 0].grid(True)
+
+            axes[1, 1].plot(time, thrust, label='Thrust', color='black')
+            axes[1, 1].set_title('Thrust vs Time')
+            axes[1, 1].set_xlabel('Time (s)')
+            axes[1, 1].set_ylabel('Thrust (N)')
+            axes[1, 1].grid(True)
+
+            axes[2, 0].plot(time, drag, label='Drag', color='black')
+            axes[2, 0].set_title('Drag vs Time')
+            axes[2, 0].set_xlabel('Time (s)')
+            axes[2, 0].set_ylabel('Drag (N)')
+            axes[2, 0].grid(True)
+
+            axes[2, 1].plot(time, drag, label='Performance', color='black')
+            axes[2, 1].set_title('Drag vs Time')
+            axes[2, 1].set_xlabel('Time (s)')
+            axes[2, 1].set_ylabel('Drag (N)')
+            axes[2, 1].grid(True)
+            
+            matplotlib.pyplot.tight_layout()
+            matplotlib.pyplot.savefig(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}.png', dpi=300)
+            matplotlib.pyplot.close()
