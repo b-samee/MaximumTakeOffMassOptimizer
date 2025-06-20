@@ -36,7 +36,7 @@ class ParallelBinaryOptimizer:
         self.thrust_counters = list()
         self.drag_counters = list()
 
-        self.main_progress_indicator = tqdm.tqdm(bar_format='{desc} | Elapsed: {elapsed} | Epoch: {n} / ~{total}', desc=f'Optimizing for MTOW | Config: -', position=0, leave=True)
+        self.main_progress_indicator = tqdm.tqdm(bar_format='{desc} | Elapsed: {elapsed} | Epoch: {n}', desc=f'Optimizing for MTOW | Config: -', position=0, leave=True)
         self.progress_bars = list()
         
         for i in range(self.n_processes):
@@ -67,12 +67,6 @@ class ParallelBinaryOptimizer:
         config_identifier = run_configuration.identifier
         config_masses = f'({", ".join(f"{mass_bound:.2f}" for mass_bound in run_configuration.mass_range)})'
         config_displacements = f'({", ".join(f"{displacement_bound:.2f}" for displacement_bound in run_configuration.cutoff_displacement)})'
-        
-        mass_range = run_configuration.mass_range[1] - run_configuration.mass_range[0]
-        tolerance = run_configuration.cutoff_displacement[1] - run_configuration.cutoff_displacement[0]
-        intervals = self.n_processes-1
-        
-        self.main_progress_indicator.total = int(math.ceil(math.log((mass_range) / (tolerance), intervals)))
         
         self.main_progress_indicator.set_description_str(
             f'Optimizing for MTOW | Config[{config_identifier}]: m={config_masses} kg ~ x={config_displacements} m'
