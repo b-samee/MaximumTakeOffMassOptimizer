@@ -19,10 +19,6 @@ Each run configuration file represents a plane-environment-constraints scenario 
     "timestep_resolution": float | int,                         # Simulation time (s) step size
     "mass_range": [float | int, float | int],                   # Mass (kg) range to search
     "cutoff_displacement": [float | int, float | int],          # Cutoff distance (m) range
-    "discard_conditions": {
-        "velocity": None | float | int,                         # Velocity before cutoff (m/s)
-        "time": None | float | int                              # Time after cutoff (s)
-    },
     "setpoint_parameters": {
         "velocity": None | float | int,                         # Initial velocity (m/s)
         "voltage": None | float | int,                          # Voltage (V)
@@ -33,16 +29,18 @@ Each run configuration file represents a plane-environment-constraints scenario 
         "pele": None | float | int,                             # Electrical Power (W)
         "rpm": None | float | int                               # RPM (rpm)
     },
-    "drag_force": {
+    "aerodynamic_forces": {
         "fluid_density": None | float | int,                    # Fluid density (kg/m^3)
         "true_airspeed": None | float | int,                    # True airspeed (m/s)
         "drag_coefficient": None | float | int,                 # Drag coefficient
         "reference_area": None | float | int                    # Reference area (m^2)
+        "acceleration_gravity": None | float | int              # Acceleration due to gravity (m/s^2)
+        "lift_coefficient": None | float | int                  # Lift coefficient
     }
 }
 ```
 
-For keys that can take `None`, setting `None` effectively means one of three things. For `discard_conditions`, it means that a process of the optimization should run until the takeoff distance is reached, rather than quitting early when it notices that a case it was given is hopeless in terms of `velocity` or `time`. The `velocity` parameter is the velocity that must be exceeded by the cutoff distance while the `time` parameter is the time that must not be reached by the cutoff distance. For `setpoint_parameters`, it means that the setpoint parameter should be initialized to the default according to QPROP documentation. For a typical use of this tool, only voltage is set. For `drag_force`, it means that value should be treated as zero, except in the case of `true_airspeed`, where it denotes that the tool should dynamically calculate the velocity.
+The `None` value is used to indicate to the optimizer that we don't want to provide a value ourselves, instead letting the optimizer figure it out. For `setpoint_parameters`, `None` means that the setpoint parameter should be initialized to 0. For `aerodynamic_forces`, `None` means that the parameter should be initialized to 0, except for three cases: for `acceleration_gravity` it is 9.81, for `lift_coefficient` it is 1.0, and for `true_airspeed` the optimizer should dynamically update the velocity to match the plane's current velocity at every step of the simulation.
 
 ## Project Structure
 
