@@ -97,8 +97,8 @@ MaximumTakeOffMassOptimizer/                    # Project root
 │   │   ├── config_structure.py                 # Used to define and verify config structure
 │   │   ├── process_statuses.py                 # Used to define process status enums
 │   │   └── result_states.py                    # Used to define result state enums
-│   ├── DynamicThrustModel.py                   # Represents the QPROP (slave) process
-│   ├── ParallelBinaryOptimizer.py              # Represents the optimizer (master) process
+│   ├── DynamicThrustModel.py                   # Represents a QPROP (worker) process
+│   ├── ParallelBinaryOptimizer.py              # Represents the optimizer (main) process
 │   └── RunConfiguration.py                     # Validates and encapsulates a run configuration
 ├── docs/                                       # Files referenced in documentation
 │   └── readme.png                              # Image referenced in the README
