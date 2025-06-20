@@ -4,10 +4,6 @@ EXPECTED_CONFIGURATION_STRUCTURE = {
     'timestep_resolution': (float, int),
     'mass_range': [(float, int), (float, int)],
     'cutoff_displacement': [(float, int), (float, int)],
-    'discard_conditions': {
-        'velocity': (None, float, int),
-        'time': (None, float, int)
-    },
     'setpoint_parameters': {
         'velocity': (None, float, int),
         'voltage': (None, float, int),
