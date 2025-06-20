@@ -247,12 +247,8 @@ class ParallelBinaryOptimizer:
             axes[2, 0].set_xlabel('Time (s)')
             axes[2, 0].set_ylabel('Drag (N)')
             axes[2, 0].grid(True)
-
-            axes[2, 1].plot(time, drag, label='Performance', color='black')
-            axes[2, 1].set_title('Drag vs Time')
-            axes[2, 1].set_xlabel('Time (s)')
-            axes[2, 1].set_ylabel('Drag (N)')
-            axes[2, 1].grid(True)
+            
+            axes[2, 1].axis('off')
             
             matplotlib.pyplot.tight_layout()
             matplotlib.pyplot.savefig(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}.png', dpi=300)
