@@ -18,11 +18,13 @@ EXPECTED_CONFIGURATION_STRUCTURE = {
         'pele': (None, float, int),
         'rpm': (None, float, int)
     },
-    'drag_force': {
+    'aerodynamic_forces': {
         'fluid_density': (None, float, int),
         'true_airspeed': (None, float, int),
         'drag_coefficient': (None, float, int),
-        'reference_area': (None, float, int)
+        'reference_area': (None, float, int),
+        'acceleration_gravity': (None, float, int),
+        'lift_coefficient': (None, float, int)
     }
 }
 
