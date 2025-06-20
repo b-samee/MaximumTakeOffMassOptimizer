@@ -46,7 +46,7 @@ The `None` value is used to indicate to the optimizer that we don't want to prov
 
 > A plane boasts an `apc14x10e` propeller and a `CobraCM2217-26` motor. The plane must begin to take off before $100\ m$. We seek a maximum take-off mass (MTOW) so high that the plane begins to take off anytime beyond the $99\ m$ mark, but not before; this is our tolerance. The voltage at full throttle is $8.40\ V$. The plane's aerodynamic characteristics are approximated off of a similar plane to be $0.1$ for the drag coefficient, $1.0$ for the lift coefficient, and $0.075\ m^2$ for the reference area. Assume an air density of $1.225\ kg/m^3$, an acceleration due to gravity of $9.81\ m/s^2$, and variable drag. A time-step resolution of $0.1\ s$ is enough for our simulation.
 
-For this problem, the configuration file should look something like the snippet shown below. We could have picked a smaller mass range if we were confident about the mass range we expect the plane to be within. We set `null` for `true_airspeed` to allow the optimizer to model variable drag. Running the optimization with the default flags (3 worker processes) takes 8 epochs in total, around a minute (depending on your system), yielding a $v_{stall} = 10.23\ m/s$ and $m_{max} = 0.490\ kg$, in addition to all the dynamic analysis plots.
+For this problem, the configuration file should look something like the snippet shown below. We could have picked a smaller mass range if we were confident about the mass range we expect the plane to be within. We set `null` for `true_airspeed` to allow the optimizer to model variable drag.
 
 ```json
 {
@@ -75,6 +75,12 @@ For this problem, the configuration file should look something like the snippet 
     }
 }
 ```
+
+Running the optimization with the default flags (3 worker processes) takes 8 epochs in total, around a minute (depending on your system), yielding a $v_{stall} = 10.23\ m/s$ and $m_{max} = 0.490\ kg$, as well as the dynamic analysis plots that follow.
+
+<div style="text-align: center;">
+    <img src='docs/readme.png' alt='Dynamic Analysis Plots' width='800' />
+</div>
 
 ## Project Structure
 

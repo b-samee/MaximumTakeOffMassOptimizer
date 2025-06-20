@@ -4,4 +4,6 @@ __pycache__
 *.png
 *.npz
 
+!docs/*
+
 TODO
