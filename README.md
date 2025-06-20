@@ -95,6 +95,8 @@ MaximumTakeOffMassOptimizer/                    # Project root
 │   ├── DynamicThrustModel.py                   # Represents the QPROP (slave) process
 │   ├── ParallelBinaryOptimizer.py              # Represents the optimizer (master) process
 │   └── RunConfiguration.py                     # Validates and encapsulates a run configuration
+├── docs/                                       # Files referenced in documentation
+│   └── readme.png                              # Image referenced in the README
 ├── motor_files/                                # Motor files
 │   └── ...
 ├── propeller_files/                            # Propeller files
