@@ -126,8 +126,8 @@ class ParallelBinaryOptimizer:
                     with self.status_counters[i].get_lock():
                         self.progress_bars[i].set_description_str(f'Process {i:>{PROCESS_PADDING}} | m = {MASS_SPACE[i]:>{MASS_PADDING}.16f} kg | [{ProcessStatus.get(self.status_counters[i].value)}]')
                     with self.position_counters[i].get_lock():
-                        self.progress_bars[i].n = int(min(self.position_counters[i].value, run_configuration.cutoff_displacement[0]))
-                        self.progress_bars[i].last_print_n = int(min(self.position_counters[i].value, run_configuration.cutoff_displacement[0]))
+                        self.progress_bars[i].n = min(self.position_counters[i].value, run_configuration.cutoff_displacement[0])
+                        self.progress_bars[i].last_print_n = min(self.position_counters[i].value, run_configuration.cutoff_displacement[0])
                         with self.velocity_counters[i].get_lock():
                             with self.acceleration_counters[i].get_lock():
                                 with self.time_counters[i].get_lock():
