@@ -65,8 +65,8 @@ class ParallelBinaryOptimizer:
         maximum = run_configuration.mass_range[1]
 
         config_identifier = run_configuration.identifier
-        config_masses = f'({", ".join(f"{mass_bound:.2f}" for mass_bound in run_configuration.mass_range)})'
-        config_displacements = f'({", ".join(f"{displacement_bound:.2f}" for displacement_bound in run_configuration.cutoff_displacement)})'
+        config_masses = f'({", ".join(f"{mass_bound:.16f}" for mass_bound in run_configuration.mass_range)})'
+        config_displacements = f'({", ".join(f"{displacement_bound:.16f}" for displacement_bound in run_configuration.cutoff_displacement)})'
         
         self.main_progress_indicator.set_description_str(
             f'Optimizing for MTOW | Config[{config_identifier}]: m={config_masses} kg ~ x={config_displacements} m'
@@ -77,7 +77,7 @@ class ParallelBinaryOptimizer:
             processes: list[multiprocessing.Process] = list()
 
             PROCESS_PADDING = len(str(self.n_processes-1))
-            MASS_PADDING = max([len(f'{mass:.2f}') for mass in MASS_SPACE])
+            MASS_PADDING = max([len(f'{mass:.16f}') for mass in MASS_SPACE])
             
             for i in range(self.n_processes):
                 self.status_counters[i].value = 0
@@ -200,7 +200,7 @@ class ParallelBinaryOptimizer:
             
             stall_velocity = run_configuration.get_stall_velocity(mass)
             
-            logging.info(f'STALL_VELOCITY = {stall_velocity:.2f} m/s | MTOM = {mass:.3f} kg')
+            logging.info(f'STALL_VELOCITY = {stall_velocity:.16f} m/s | MTOM = {mass:.16f} kg')
             
             if local_solution:
                 logging.warning(f'* MTOM was only found locally: the maximum mass provided is too low.')
@@ -268,5 +268,5 @@ class ParallelBinaryOptimizer:
             axes[2, 1].legend()
             
             matplotlib.pyplot.tight_layout()
-            matplotlib.pyplot.savefig(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.3f}kg-{stall_velocity:.2f}mps.png', dpi=300)
+            matplotlib.pyplot.savefig(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}kg-{stall_velocity:.16f}mps.png', dpi=300)
             matplotlib.pyplot.close()
