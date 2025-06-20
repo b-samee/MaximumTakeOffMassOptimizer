@@ -11,6 +11,7 @@ import math
 from components.RunConfiguration import RunConfiguration
 from components.utils.process_statuses import ProcessStatus
 from components.DynamicThrustModel import DynamicThrustModel
+from components.utils.result_states import ResultState
 
 class ParallelBinaryOptimizer:
     n_processes: int
@@ -165,6 +166,8 @@ class ParallelBinaryOptimizer:
             for process in processes:
                 process.join()
             
+            old_minimum, old_maximum = minimum, maximum
+            
             for i in range(self.n_processes):
                 if self.status_counters[i].value == ProcessStatus.SUCCESS_TAKEOFF.value and MASS_SPACE[i] >= minimum:
                     minimum = MASS_SPACE[i]
@@ -175,98 +178,98 @@ class ParallelBinaryOptimizer:
                     maximum = MASS_SPACE[j]
             
             if process_with_maximum_accepted_mass is None:
-                return self.cleanup_return()
+                return self.cleanup_return(ResultState.MASS_LOWERBOUND_BEYOND_MTOM)
             else:
                 takeoff_above_cutoff_lowerbound = self.position_counters[process_with_maximum_accepted_mass].value > run_configuration.cutoff_displacement[0]
                 takeoff_below_cutoff_upperbound = self.position_counters[process_with_maximum_accepted_mass].value < run_configuration.cutoff_displacement[1]
             
             if process_with_maximum_accepted_mass == self.n_processes-1:
-                return self.cleanup_return(-MASS_SPACE[process_with_maximum_accepted_mass], run_configuration)
+                return self.cleanup_return(ResultState.MASS_UPPERBOUND_BELOW_MTOM, MASS_SPACE[process_with_maximum_accepted_mass], run_configuration)
             elif takeoff_above_cutoff_lowerbound and takeoff_below_cutoff_upperbound:
-                return self.cleanup_return(MASS_SPACE[process_with_maximum_accepted_mass], run_configuration)
+                return self.cleanup_return(ResultState.MTOM_PASSED_TOLERANCE, MASS_SPACE[process_with_maximum_accepted_mass], run_configuration)
+            elif old_minimum == minimum and old_maximum == maximum:
+                return self.cleanup_return(ResultState.MTOM_FAILED_TOLERANCE, MASS_SPACE[0], run_configuration)
             
             self.main_progress_indicator.update(1)
     
-    def cleanup_return(self, mass: numpy.float64 | None = None, run_configuration: RunConfiguration | None = None) -> None:
+    def cleanup_return(self, result_state: ResultState, mass: numpy.float64 | None = None, run_configuration: RunConfiguration | None = None) -> None:
         self.main_progress_indicator.close()
         for progress_bar in self.progress_bars:
             progress_bar.close()
         
-        if mass is None:
+        if result_state == ResultState.MASS_LOWERBOUND_BEYOND_MTOM:
             logging.error(f'MTOM cannot be found within the given range: the minimum mass provided is too high.')
-        else:
-            local_solution = mass < 0
-            if local_solution: mass = -mass
-            
-            stall_velocity = run_configuration.get_stall_velocity(mass)
-            
-            logging.info(f'STALL_VELOCITY = {stall_velocity:.16f} m/s | MTOM = {mass:.16f} kg')
-            
-            if local_solution:
-                logging.warning(f'* MTOM was only found locally: the maximum mass provided is too low.')
-            
-            best_run_data = numpy.load(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}.npz')
-            time = best_run_data['t'][:-1]
-            acceleration = best_run_data['a']
-            velocity = best_run_data['v'][:-1]
-            position = best_run_data['x'][:-1]
-            thrust = best_run_data['T']
-            drag = best_run_data['D']
-            
-            run_file_paths = list(pathlib.Path(run_configuration.identifier).rglob('*.npz'))
-            
-            performance_characteristics = list()
-            for run_file_path in run_file_paths:
-                run_data = numpy.load(run_file_path)
-                performance_characteristics.append((run_data['mass'], run_data['stall_velocity'], run_data['v'][-2]))
-            
-            performance_characteristics.sort(key=lambda e: e[0])
-            masses, stall_velocities, velocities = zip(*performance_characteristics)
-            stall_velocities = numpy.array(stall_velocities, dtype=numpy.float64)
-            velocities = numpy.array(velocities, dtype=numpy.float64)
-            masses = numpy.array(masses, dtype=numpy.float64)
-            
-            _, axes = matplotlib.pyplot.subplots(3, 2, figsize=(10, 8))
-            
-            axes[0, 0].plot(time, position, label='Position', color='black')
-            axes[0, 0].set_title('Position vs Time')
-            axes[0, 0].set_xlabel('Time (s)')
-            axes[0, 0].set_ylabel('Position (m)')
-            axes[0, 0].grid(True)
+            return
+        elif result_state == ResultState.MTOM_FAILED_TOLERANCE:
+            logging.warning(f'MTOM was found but not within tolerance: not enough precision to express MTOM.')
+        elif result_state == ResultState.MASS_UPPERBOUND_BELOW_MTOM:
+            logging.warning(f'MTOM was only found locally: the maximum mass provided is too low.')
+        
+        stall_velocity = run_configuration.get_stall_velocity(mass)
+        logging.info(f'STALL_VELOCITY = {stall_velocity:.16f} m/s | MTOM = {mass:.16f} kg')
+        
+        best_run_data = numpy.load(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}.npz')
+        time = best_run_data['t'][:-1]
+        acceleration = best_run_data['a']
+        velocity = best_run_data['v'][:-1]
+        position = best_run_data['x'][:-1]
+        thrust = best_run_data['T']
+        drag = best_run_data['D']
+        
+        run_file_paths = list(pathlib.Path(run_configuration.identifier).rglob('*.npz'))
+        
+        performance_characteristics = list()
+        for run_file_path in run_file_paths:
+            run_data = numpy.load(run_file_path)
+            performance_characteristics.append((run_data['mass'], run_data['stall_velocity'], run_data['v'][-2]))
+        
+        performance_characteristics.sort(key=lambda e: e[0])
+        masses, stall_velocities, velocities = zip(*performance_characteristics)
+        stall_velocities = numpy.array(stall_velocities, dtype=numpy.float64)
+        velocities = numpy.array(velocities, dtype=numpy.float64)
+        masses = numpy.array(masses, dtype=numpy.float64)
+        
+        _, axes = matplotlib.pyplot.subplots(3, 2, figsize=(10, 8))
+        
+        axes[0, 0].plot(time, position, label='Position', color='black')
+        axes[0, 0].set_title('Position vs Time')
+        axes[0, 0].set_xlabel('Time (s)')
+        axes[0, 0].set_ylabel('Position (m)')
+        axes[0, 0].grid(True)
 
-            axes[0, 1].plot(time, velocity, label='Velocity', color='black')
-            axes[0, 1].set_title('Velocity vs Time')
-            axes[0, 1].set_xlabel('Time (s)')
-            axes[0, 1].set_ylabel('Velocity (m/s)')
-            axes[0, 1].grid(True)
+        axes[0, 1].plot(time, velocity, label='Velocity', color='black')
+        axes[0, 1].set_title('Velocity vs Time')
+        axes[0, 1].set_xlabel('Time (s)')
+        axes[0, 1].set_ylabel('Velocity (m/s)')
+        axes[0, 1].grid(True)
 
-            axes[1, 0].plot(time, acceleration, label='Acceleration', color='black')
-            axes[1, 0].set_title('Acceleration vs Time')
-            axes[1, 0].set_xlabel('Time (s)')
-            axes[1, 0].set_ylabel('Acceleration (m/s^2)')
-            axes[1, 0].grid(True)
+        axes[1, 0].plot(time, acceleration, label='Acceleration', color='black')
+        axes[1, 0].set_title('Acceleration vs Time')
+        axes[1, 0].set_xlabel('Time (s)')
+        axes[1, 0].set_ylabel('Acceleration (m/s^2)')
+        axes[1, 0].grid(True)
 
-            axes[1, 1].plot(time, thrust, label='Thrust', color='black')
-            axes[1, 1].set_title('Thrust vs Time')
-            axes[1, 1].set_xlabel('Time (s)')
-            axes[1, 1].set_ylabel('Thrust (N)')
-            axes[1, 1].grid(True)
+        axes[1, 1].plot(time, thrust, label='Thrust', color='black')
+        axes[1, 1].set_title('Thrust vs Time')
+        axes[1, 1].set_xlabel('Time (s)')
+        axes[1, 1].set_ylabel('Thrust (N)')
+        axes[1, 1].grid(True)
 
-            axes[2, 0].plot(time, drag, label='Drag', color='black')
-            axes[2, 0].set_title('Drag vs Time')
-            axes[2, 0].set_xlabel('Time (s)')
-            axes[2, 0].set_ylabel('Drag (N)')
-            axes[2, 0].grid(True)
+        axes[2, 0].plot(time, drag, label='Drag', color='black')
+        axes[2, 0].set_title('Drag vs Time')
+        axes[2, 0].set_xlabel('Time (s)')
+        axes[2, 0].set_ylabel('Drag (N)')
+        axes[2, 0].grid(True)
 
-            axes[2, 1].plot(masses, velocities, label='Final Velocity', color='black')
-            axes[2, 1].plot(masses, stall_velocities, label='Stall Velocity', color='red', linestyle='--')
-            axes[2, 1].set_title('Performance Curve')
-            axes[2, 1].set_xlabel('Mass (kg)')
-            axes[2, 1].set_ylabel('Velocity (m/s)')
-            axes[2, 1].set_xscale('log')
-            axes[2, 1].grid(True)
-            axes[2, 1].legend()
-            
-            matplotlib.pyplot.tight_layout()
-            matplotlib.pyplot.savefig(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}kg-{stall_velocity:.16f}mps.png', dpi=300)
-            matplotlib.pyplot.close()
+        axes[2, 1].plot(masses, velocities, label='Final Velocity', color='black')
+        axes[2, 1].plot(masses, stall_velocities, label='Stall Velocity', color='red', linestyle='--')
+        axes[2, 1].set_title('Performance Curve')
+        axes[2, 1].set_xlabel('Mass (kg)')
+        axes[2, 1].set_ylabel('Velocity (m/s)')
+        axes[2, 1].set_xscale('log')
+        axes[2, 1].grid(True)
+        axes[2, 1].legend()
+        
+        matplotlib.pyplot.tight_layout()
+        matplotlib.pyplot.savefig(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}kg-{stall_velocity:.16f}mps.png', dpi=300)
+        matplotlib.pyplot.close()
