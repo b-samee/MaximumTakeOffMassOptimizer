@@ -42,6 +42,40 @@ Each run configuration file represents a plane-environment-constraints scenario 
 
 The `None` value is used to indicate to the optimizer that we don't want to provide a value ourselves, instead letting the optimizer figure it out. For `setpoint_parameters`, `None` means that the setpoint parameter should be initialized to 0. For `aerodynamic_forces`, `None` means that the parameter should be initialized to 0, except for three cases: for `acceleration_gravity` it is 9.81, for `lift_coefficient` it is 1.0, and for `true_airspeed` the optimizer should dynamically update the velocity to match the plane's current velocity at every step of the simulation.
 
+## Example Use Case
+
+> A plane boasts an `apc14x10e` propeller and a `CobraCM2217-26` motor. The plane must begin to take off before $100\ m$. We seek a maximum take-off mass (MTOW) so high that the plane begins to take off anytime beyond the $99\ m$ mark, but not before; this is our tolerance. The voltage at full throttle is $8.40\ V$. The plane's aerodynamic characteristics are approximated off of a similar plane to be $0.1$ for the drag coefficient, $1.0$ for the lift coefficient, and $0.075\ m^2$ for the reference area. Assume an air density of $1.225\ kg/m^3$ and an acceleration due to gravity of $9.81\ m/s^2$. A time-step resolution of $0.1\ s$ is enough for our simulation.
+
+For this problem, the configuration file should look something like this. We could have picked a smaller mass range if we were confident about the mass range we expect the plane to be within. Running the optimization with the default flags (3 worker processes) takes 8 epochs in total, around a minute (depending on your system), yielding a $v_{stall} = 10.23\ m/s$ and $m_{max} = 0.490\ kg$, in addition to all the dynamic analysis plots.
+
+```json
+{
+    "propeller_file": "propeller_files/apc14x10e",
+    "motor_file": "motor_files/CobraCM2217-26",
+    "timestep_resolution": 0.1,
+    "mass_range": [0.1, 100],
+    "cutoff_displacement": [99.0, 100.0],
+    "setpoint_parameters": {
+        "velocity": null,
+        "voltage": 8.4,
+        "dbeta": null,
+        "current": null,
+        "torque": null,
+        "thrust": null,
+        "pele": null,
+        "rpm": null
+    },
+    "aerodynamic_forces": {
+        "fluid_density": 1.225,
+        "true_airspeed": null,
+        "drag_coefficient": 0.1,
+        "reference_area": 0.075,
+        "acceleration_gravity": 9.81,
+        "lift_coefficient": 1.0
+    }
+}
+```
+
 ## Project Structure
 
 This section outlines the structure of the project for documentation purposes, in case future patches must be applied.
