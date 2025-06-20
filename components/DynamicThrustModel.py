@@ -89,5 +89,7 @@ class DynamicThrustModel:
             v=numpy.array(velocity, dtype=numpy.float64),
             x=numpy.array(position, dtype=numpy.float64),
             T=numpy.array(thrust, dtype=numpy.float64),
-            D=numpy.array(drag, dtype=numpy.float64)
+            D=numpy.array(drag, dtype=numpy.float64),
+            stall_velocity=stall_velocity,
+            mass=mass
         )

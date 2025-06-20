@@ -1,6 +1,7 @@
 import multiprocessing.sharedctypes
 import matplotlib.pyplot
 import multiprocessing
+import pathlib
 import logging
 import ctypes
 import numpy
@@ -210,13 +211,26 @@ class ParallelBinaryOptimizer:
             if local_solution:
                 logging.warning(f'* MTOM was only found locally: the maximum mass provided is too low.')
             
-            best_run = numpy.load(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}.npz')
-            time = best_run['t'][:-1]
-            acceleration = best_run['a']
-            velocity = best_run['v'][:-1]
-            position = best_run['x'][:-1]
-            thrust = best_run['T']
-            drag = best_run['D']
+            best_run_data = numpy.load(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}.npz')
+            time = best_run_data['t'][:-1]
+            acceleration = best_run_data['a']
+            velocity = best_run_data['v'][:-1]
+            position = best_run_data['x'][:-1]
+            thrust = best_run_data['T']
+            drag = best_run_data['D']
+            
+            run_file_paths = list(pathlib.Path(run_configuration.identifier).rglob('*.npz'))
+            
+            stall_velocities_vs_masses = list()
+            for run_file_path in run_file_paths:
+                run_data = numpy.load(run_file_path)
+                stall_velocities_vs_masses.append((run_data['mass'], run_data['stall_velocity'], run_data['v'][-2]))
+            
+            stall_velocities_vs_masses.sort(key=lambda e: e[0])
+            masses, stall_velocities, velocities = zip(*stall_velocities_vs_masses)
+            stall_velocities = numpy.array(stall_velocities, dtype=numpy.float64)
+            velocities = numpy.array(velocities, dtype=numpy.float64)
+            masses = numpy.array(masses, dtype=numpy.float64)
             
             _, axes = matplotlib.pyplot.subplots(3, 2, figsize=(10, 8))
             
@@ -249,8 +263,16 @@ class ParallelBinaryOptimizer:
             axes[2, 0].set_xlabel('Time (s)')
             axes[2, 0].set_ylabel('Drag (N)')
             axes[2, 0].grid(True)
-            
-            axes[2, 1].axis('off')
+
+            axes[2, 1].plot(masses, velocities, label='Velocity', color='black')
+            axes[2, 1].plot(masses, stall_velocities, label='Stall Velocity', color='red', linestyle='--')
+            axes[2, 1].set_title('Performance Curve')
+            axes[2, 1].set_xlabel('Mass (kg)')
+            axes[2, 1].set_ylabel('Velocity (m/s)')
+            axes[2, 1].set_xscale('log')
+            axes[2, 1].set_yscale('log')
+            axes[2, 1].grid(True)
+            axes[2, 1].legend()
             
             matplotlib.pyplot.tight_layout()
             matplotlib.pyplot.savefig(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.3f}kg-{stall_velocity:.2f}mps.png', dpi=300)
