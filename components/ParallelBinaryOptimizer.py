@@ -95,7 +95,7 @@ class ParallelBinaryOptimizer:
                 self.drag_counters[i].value = 0
                 
                 self.progress_bars[i].total = run_configuration.cutoff_displacement[0]
-                self.progress_bars[i].set_description_str(f'Process {i:>{PROCESS_PADDING}} | m = {MASS_SPACE[i]:>{MASS_PADDING}.2f} kg | [{ProcessStatus.FORKING_PROCESS}]')
+                self.progress_bars[i].set_description_str(f'Process {i:>{PROCESS_PADDING}} | m = {MASS_SPACE[i]:>{MASS_PADDING}.16f} kg | [{ProcessStatus.FORKING_PROCESS}]')
                 self.progress_bars[i].set_postfix_str(f't = 0 s | x = 0 m | v = 0 m/s | a = 0 m/s^2 | T = 0 N | D = 0 N')
                 
                 processes.append(
@@ -130,7 +130,7 @@ class ParallelBinaryOptimizer:
                 
                 for i in range(self.n_processes):
                     with self.status_counters[i].get_lock():
-                        self.progress_bars[i].set_description_str(f'Process {i:>{PROCESS_PADDING}} | m = {MASS_SPACE[i]:>{MASS_PADDING}.2f} kg | [{ProcessStatus.get(self.status_counters[i].value)}]')
+                        self.progress_bars[i].set_description_str(f'Process {i:>{PROCESS_PADDING}} | m = {MASS_SPACE[i]:>{MASS_PADDING}.16f} kg | [{ProcessStatus.get(self.status_counters[i].value)}]')
                     with self.position_counters[i].get_lock():
                         self.progress_bars[i].n = int(min(self.position_counters[i].value, run_configuration.cutoff_displacement[0]))
                         self.progress_bars[i].last_print_n = int(min(self.position_counters[i].value, run_configuration.cutoff_displacement[0]))
