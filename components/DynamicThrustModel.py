@@ -28,6 +28,8 @@ class DynamicThrustModel:
         thrust = list()
         drag = list()
         
+        stall_velocity = run_configuration.get_stall_velocity(mass)
+        
         while True:
             with status_counter.get_lock():
                 status_counter.value = ProcessStatus.EXECUTING_QPROP.value
@@ -70,14 +72,10 @@ class DynamicThrustModel:
             with status_counter.get_lock():
                 status_counter.value = ProcessStatus.CHECKING_LIMITS.value
             
-            if run_configuration.discard_conditions_time > 0 and duration[-1] >= run_configuration.discard_conditions_time:
-                with status_counter.get_lock():
-                    status_counter.value = ProcessStatus.EXCEED_DURATION.value
-                    break
-            elif position[-1] > run_configuration.cutoff_displacement[0]:
-                if run_configuration.discard_conditions_velocity > 0 and velocity[-1] <= run_configuration.discard_conditions_velocity:
+            if position[-1] > run_configuration.cutoff_displacement[0]:
+                if velocity[-1] <= stall_velocity:
                     with status_counter.get_lock():
-                        status_counter.value = ProcessStatus.LACKED_VELOCITY.value
+                        status_counter.value = ProcessStatus.FAILED_VELOCITY.value
                         break
                 else:
                     with status_counter.get_lock():

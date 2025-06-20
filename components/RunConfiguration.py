@@ -106,3 +106,6 @@ class RunConfiguration:
     
     def get_drag_force(self, velocity: numpy.float64) -> numpy.float64:
         return numpy.float64(0.5) * self.aerodynamic_forces_fluid_density * numpy.power(velocity if self.variable_drag else self.aerodynamic_forces_true_airspeed, 2, dtype=numpy.float64) * self.aerodynamic_forces_drag_coefficient * self.aerodynamic_forces_reference_area
+    
+    def get_stall_velocity(self, mass: numpy.float64) -> numpy.float64:
+        return numpy.sqrt(numpy.divide(2.0 * mass * self.aerodynamic_forces_acceleration_gravity, self.aerodynamic_forces_lift_coefficient * self.aerodynamic_forces_fluid_density * self.aerodynamic_forces_reference_area))

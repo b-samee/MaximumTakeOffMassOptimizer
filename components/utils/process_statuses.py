@@ -9,9 +9,8 @@ class ProcessStatus(enum.Enum):
     UPDATING_COUNTS = enum.auto()
     CHECKING_LIMITS = enum.auto()
     SUCCESS_TAKEOFF = enum.auto()
-    LACKED_VELOCITY = enum.auto()
-    EXCEED_DURATION = enum.auto()
-
+    FAILED_VELOCITY = enum.auto()
+    
     @classmethod
     def get(cls, index: int):
         return list(cls)[index]

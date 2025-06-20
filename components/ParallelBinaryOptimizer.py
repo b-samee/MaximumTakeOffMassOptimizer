@@ -67,8 +67,6 @@ class ParallelBinaryOptimizer:
         config_identifier = run_configuration.identifier
         config_masses = f'({", ".join(f"{mass_bound:.2f}" for mass_bound in run_configuration.mass_range)})'
         config_displacements = f'({", ".join(f"{displacement_bound:.2f}" for displacement_bound in run_configuration.cutoff_displacement)})'
-        config_velocity = f'{run_configuration.discard_conditions_velocity:.2f}'
-        config_time = f'{run_configuration.discard_conditions_time:.2f}'
         
         mass_range = run_configuration.mass_range[1] - run_configuration.mass_range[0]
         tolerance = run_configuration.cutoff_displacement[1] - run_configuration.cutoff_displacement[0]
@@ -77,7 +75,7 @@ class ParallelBinaryOptimizer:
         self.main_progress_indicator.total = int(math.ceil(math.log((mass_range) / (tolerance), intervals)))
         
         self.main_progress_indicator.set_description_str(
-            f'Optimizing for MTOW | Config[{config_identifier}]: m={config_masses} kg ~ x={config_displacements} m @ (v > {config_velocity} m/s, t < {config_time} s)'
+            f'Optimizing for MTOW | Config[{config_identifier}]: m={config_masses} kg ~ x={config_displacements} m'
         )
         
         while True:
