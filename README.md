@@ -94,8 +94,9 @@ This section outlines the structure of the project for documentation purposes, i
 MaximumTakeOffMassOptimizer/                    # Project root
 ├── components/                                 # Python script components
 │   ├── utils/                                  # Python script utilities
-│   │   └── config_structure.py                 # Used to define and verify config structure
-│   │   └── process_statuses.py                 # Used to define process status enums
+│   │   ├── config_structure.py                 # Used to define and verify config structure
+│   │   ├── process_statuses.py                 # Used to define process status enums
+│   │   └── result_states.py                    # Used to define result state enums
 │   ├── DynamicThrustModel.py                   # Represents the QPROP (slave) process
 │   ├── ParallelBinaryOptimizer.py              # Represents the optimizer (master) process
 │   └── RunConfiguration.py                     # Validates and encapsulates a run configuration
