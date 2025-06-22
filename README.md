@@ -49,17 +49,18 @@ Three parameters of the configuration work together to affect the duration and q
 
 ## Example Use Case
 
-> A plane boasts an `apc14x10e` propeller and a `CobraCM2217-26` motor. The plane must begin to take off before $100\ m$. We seek a maximum take-off mass (MTOW) so high that the plane begins to take off anytime beyond the $99\ m$ mark, but not before; this is our tolerance. The voltage at full throttle is $8.40\ V$. The plane's aerodynamic characteristics are approximated off of a similar plane to be $0.1$ for the drag coefficient, $1.0$ for the lift coefficient, and $0.075\ m^2$ for the reference area. Assume an air density of $1.225\ kg/m^3$, an acceleration due to gravity of $9.81\ m/s^2$, and variable drag. A time-step resolution of $0.1\ s$ is enough for our simulation.
+> A plane boasts an `apc14x10e` propeller and a `CobraCM2217-26` motor. The plane must take off by $100\ m$. We seek a MOTM within the nearest gram. The voltage at full throttle is $8.40\ V$. Based on a similar plane, we expect the mass of the plane to be between $0.1\ kg$ and $2.0\ kg$ and its aerodynamic characteristics approximated to be $0.1$ for the drag coefficient, $1.0$ for the lift coefficient, and $0.075\ m^2$ for the reference area. Assume an air density of $1.225\ kg/m^3$, an acceleration due to gravity of $9.81\ m/s^2$, and variable drag.
 
-For this problem, the configuration file should look something like the snippet shown below. We set `null` for `true_airspeed` to allow the optimizer to model variable drag. We could have picked a smaller mass range if we were confident about the mass range we expect the plane to be within. A tighter mass range around the MOTM also gives more meaningful graphs.
+For this problem, the configuration file should look something like the snippet shown below. We set `null` for `true_airspeed` to allow the optimizer to model variable drag, otherwise the drag will be constant. For the `timestep_size`, we should pick values based on our intuition. In this case, we think a `timestep_size` of $0.1\ s$ will suffice.
 
 ```json
 {
     "propeller_file": "propeller_files/apc14x10e",
     "motor_file": "motor_files/CobraCM2217-26",
-    "timestep_resolution": 0.1,
-    "mass_range": [0.1, 100],
-    "cutoff_displacement": [99.0, 100.0],
+    "timestep_size": 0.1,
+    "mass_range": [0.1, 2.0],
+    "arithmetic_precision": null,
+    "takeoff_displacement": 100.0,
     "setpoint_parameters": {
         "velocity": null,
         "voltage": 8.4,
@@ -81,13 +82,33 @@ For this problem, the configuration file should look something like the snippet 
 }
 ```
 
-Running the optimization with the default flags (3 worker processes) takes 8 epochs in total, around a minute (depending on your system), yielding a $v_{stall} = 10.23\ m/s$ and $m_{max} = 0.490\ kg$, as well as the dynamic analysis plots that follow. An important point is that the displacement range defines the **tolerance** that the optimization solution must satisfy. Picking a more extreme displacement range such as `[99.9, 100.0]` would indicate that we want to squeeze so much mass onto the plane as we can, to the point where we push the plane to lift off beyond $99.9\ m$ but (still) before $100.0\ m$. Though this level of (in)tolerance is clearly too extreme for most applications, it can make a difference in the solution. **Note** that before attempting this next part, set the mass range to `[0.1, 1.0]` to speed up the simulation.
+Running the optimization with the default flags (3 worker processes) displays the following final output and saves some dynamic analysis plots.
+
+```bash
+Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed: 00:31 | Epoch: 12
+Process 0 | m = 0.877 kg [t = 11.20 s | x = 100.82 m | v = 13.69 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+Process 1 | m = 0.877 kg [t = 11.20 s | x = 100.79 m | v = 13.69 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+Process 2 | m = 0.877 kg [t = 11.20 s | x = 100.76 m | v = 13.69 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+[WARNING] MTOM found may not be accurate: simulation timestep size (0.1) is too large.
+[INFO] STALL_VELOCITY = 13.681 m/s | MTOM = 0.877 kg | LIFTOFF_DISTANCE = 100.81783505059695 m
+```
+
+The output demonstrates the importance of the `timestep_size` value. Here, the optimizer is warning us that although a MOTM was found, it may not be accurate as it could only guarantee that the plane is at takeoff by $100.81\ m$, which is above the `takeoff_displacement` we specified. In order to improve our result, let's try decreasing the `timestep_size` to $0.01\ s$. As you can see from the output, the simulation took five times as long and gave us a more accurate result. Though the result is still not perfectly accurate, it suffices for this example, given how close the final liftoff distance was. If the result is deemed unacceptable, we could either further reduce the `timestep_size` and wait longer, or we could reduce the `takeoff_displacement` specified in the configuration file to artificially limit the optimizer.
+
+```bash
+Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed: 04:07 | Epoch: 12
+Process 0 | m = 0.875 kg [t = 11.19 s | x = 100.01 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+Process 1 | m = 0.875 kg [t = 11.20 s | x = 100.12 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+Process 2 | m = 0.876 kg [t = 11.20 s | x = 100.09 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+[WARNING] MTOM found may not be accurate: simulation timestep size (0.01) is too large.
+[INFO] STALL_VELOCITY = 13.667 m/s | MTOM = 0.875 kg | LIFTOFF_DISTANCE = 100.11569937380077 m
+```
+
+The graphs obtained from this last run are shown below. The bottom-right graph in particular provides a summary of the optimization. The point at and to the right of where the final velocity and stall velocity curves intersect represents the danger zone, where the mass of the plane leaves it unable to accelerate beyond the stall velocity by the takeoff displacement, which is required for the plane to take off.
 
 <div style="text-align: center;">
     <img src='docs/readme.png' alt='Dynamic Analysis Plots' width='800' />
 </div>
-
-Attempting the extreme displacement range for the same configuration file reveals that the plane is actually capable of carrying close to $0.877\ kg$ and still taking off before $100\ m$, which is a considerable difference from the number we previously obtained! If you actually attempt a lower bound of $99.6\ m$, the simulation will quickly end with a slightly improved MTOM of $0.550\ kg$. Increase the lower bound to $99.7\ m$ and the simulation will take around 50x longer, eventually giving you the $0.877\ kg$ figure. Sometimes, as in this case, finding an MTOM within a specific tolerance given float64 precision is impossible. Even so, the result can be used, provided that the user isn't insistent on their selected tolerance. But picking a low tolerance is also risky, as you're pushing the plane's takeoff closer and closer towards the cutoff distance. In a sense, the displacement tolerance is a safety buffer. So it's a double-edged sword; you're balancing safety against capacity.
 
 ## Project Structure
 
