@@ -209,7 +209,7 @@ class ParallelBinaryOptimizer:
         thrust = best_run_data['T']
         drag = best_run_data['D']
         
-        if position[-1] > run_configuration.takeoff_displacement:
+        if best_run_data['x'][-1] > run_configuration.takeoff_displacement:
             logging.warning(f'MTOM found may not be accurate: simulation timestep size ({run_configuration.timestep_size}) is too large.')
         
         logging.info(f'STALL_VELOCITY = {stall_velocity:.{run_configuration.arithmetic_precision}f} m/s | MTOM = {mass:.{run_configuration.arithmetic_precision}f} kg | LIFTOFF_DISTANCE = {best_run_data["x"][-1]} m')
