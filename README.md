@@ -6,7 +6,7 @@ QPROP is an analysis program for predicting the performance of propeller-motor o
 
 This script was written in Python `3.13.3` and may require a version that is close to run. The script also requires that several packages be installed, which can be conveniently done by running `pip install -r requirements.txt`, assuming no virtual environment is being used for packages. By design, the script also requires a computer with at least 4 **logical processors**. The script is run using the following command:
 
-```md
+```bash
 python main.py -c <config_json_path> [-p n_processes]
 ```
 
@@ -18,7 +18,7 @@ Each run configuration file represents a plane-environment-constraints scenario 
 {
     "propeller_file": str,                                      # Path to propeller file
     "motor_file": str,                                          # Path to motor file
-    "timestep_resolution": float | int,                         # Simulation time (s) step size
+    "timestep_size": float | int,                               # Simulation time (s) step size
     "mass_range": [float | int, float | int],                   # Mass (kg) range to search
     "cutoff_displacement": [float | int, float | int],          # Cutoff distance (m) range
     "setpoint_parameters": {
