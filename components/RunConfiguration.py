@@ -68,7 +68,7 @@ class RunConfiguration:
         if self.mass_range[0] == 0:
             raise ZeroDivisionError(f'mass cannot be 0')
         
-        self.arithmetic_precision = json_data['arithmetic_precision']
+        self.arithmetic_precision = 3 if json_data['arithmetic_precision'] is None else json_data['arithmetic_precision']
         
         self.takeoff_displacement = numpy.float64(json_data['takeoff_displacement'])
         
