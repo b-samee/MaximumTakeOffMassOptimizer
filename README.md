@@ -20,7 +20,8 @@ Each run configuration file represents a plane-environment-constraints scenario 
     "motor_file": str,                                          # Path to motor file
     "timestep_size": float | int,                               # Simulation time (s) step size
     "mass_range": [float | int, float | int],                   # Mass (kg) range to search
-    "cutoff_displacement": [float | int, float | int],          # Cutoff distance (m) range
+    "arithmetic_precision": None | int,                         # Arithmetic precision for tolerance
+    "takeoff_displacement": float | int,                        # Displacement (m) at take-off
     "setpoint_parameters": {
         "velocity": None | float | int,                         # Initial velocity (m/s)
         "voltage": None | float | int,                          # Voltage (V)
@@ -42,7 +43,9 @@ Each run configuration file represents a plane-environment-constraints scenario 
 }
 ```
 
-The `None` value is used to indicate to the optimizer that we don't want to provide a value ourselves, instead letting the optimizer figure it out. For `setpoint_parameters`, `None` means that the setpoint parameter should be initialized to 0. For `aerodynamic_forces`, `None` means that the parameter should be initialized to 0, except for three cases: for `acceleration_gravity` it is 9.81, for `lift_coefficient` it is 1.0, and for `true_airspeed` the optimizer should dynamically update the velocity to match the plane's current velocity at every step of the simulation.
+The `None` value, known as `null` in `json`, is used to indicate to the optimizer that we don't want to provide a value ourselves, instead letting the optimizer figure it out. For `arithmetic_precision`, `null` means the precision should be set to the default of 3. For `setpoint_parameters`, `null` means that the setpoint parameter should be initialized to the default of 0. For `aerodynamic_forces`, `null` means that the aerodynamic parameter should be initialized to the default of 0, except for three cases: for `acceleration_gravity` it is 9.81, for `lift_coefficient` it is 1.0, and for `true_airspeed` the optimizer should dynamically update the velocity to match the plane's current velocity at every step of the simulation.
+
+Three parameters of the configuration work together to affect the duration and quality of the simulation: `timestep_size`, `mass_range`, and `arithmetic_precision`. The smaller the `timestep_size`, the more accurate the simulation output will be but the longer it will take. The tighter the `mass_range` is around the actual MOTM, the faster the simulation, but this requires prior knowledge or a ball-park estimate of the MOTM. As for the `arithmetic_precision`, it controls how much the optimizer should keep pushing for higher masses. A precision of 3 signifies that the nearest gram suffices.
 
 ## Example Use Case
 
