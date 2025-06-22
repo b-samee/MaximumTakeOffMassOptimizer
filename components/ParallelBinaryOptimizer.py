@@ -215,7 +215,7 @@ class ParallelBinaryOptimizer:
         thrust = best_run_data['T']
         drag = best_run_data['D']
         
-        logging.info(f'STALL_VELOCITY = {stall_velocity:.16f} m/s | MTOM = {mass:.16f} kg | LIFTOFF_DISTANCE = {position[-1]} m')
+        logging.info(f'STALL_VELOCITY = {stall_velocity:.16f} m/s | MTOM = {mass:.16f} kg | LIFTOFF_DISTANCE = {best_run_data["x"][-1]} m')
         
         run_file_paths = list(pathlib.Path(run_configuration.identifier).rglob('*.npz'))
         
