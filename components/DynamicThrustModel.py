@@ -72,7 +72,7 @@ class DynamicThrustModel:
             with status_counter.get_lock():
                 status_counter.value = ProcessStatus.CHECKING_LIMITS.value
             
-            if position[-1] > run_configuration.cutoff_displacement[0]:
+            if position[-1] > run_configuration.takeoff_displacement:
                 if velocity[-1] <= stall_velocity:
                     with status_counter.get_lock():
                         status_counter.value = ProcessStatus.FAILED_VELOCITY.value
@@ -83,7 +83,7 @@ class DynamicThrustModel:
                         break
         
         numpy.savez(
-            f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}.npz',
+            f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.{run_configuration.arithmetic_precision}f}.npz',
             t=numpy.array(duration, dtype=numpy.float64),
             a=numpy.array(acceleration, dtype=numpy.float64),
             v=numpy.array(velocity, dtype=numpy.float64),

@@ -12,7 +12,8 @@ class RunConfiguration:
     motor_file: pathlib.Path
     timestep_size: numpy.float64
     mass_range: tuple[numpy.float64, numpy.float64]
-    cutoff_displacement: tuple[numpy.float64, numpy.float64]
+    arithmetic_precision: int
+    takeoff_displacement: numpy.float64
     setpoint_velocity: numpy.float64
     setpoint_voltage: numpy.float64
     setpoint_dbeta: numpy.float64
@@ -67,9 +68,9 @@ class RunConfiguration:
         if self.mass_range[0] == 0:
             raise ZeroDivisionError(f'mass cannot be 0')
         
-        self.cutoff_displacement = (numpy.float64(json_data['cutoff_displacement'][0]), numpy.float64(json_data['cutoff_displacement'][1]))
-        if self.cutoff_displacement[0] > self.cutoff_displacement[1]:
-            raise ValueError(f'minimum "cutoff_displacement" ({self.cutoff_displacement[0]}) cannot exceed maximum "cutoff_displacement" ({self.cutoff_displacement[1]})')
+        self.arithmetic_precision = json_data['arithmetic_precision']
+        
+        self.takeoff_displacement = numpy.float64(json_data['takeoff_displacement'])
         
         self.setpoint_velocity = numpy.float64(0) if json_data['setpoint_parameters']['velocity'] is None else numpy.float64(json_data['setpoint_parameters']['velocity'])
         

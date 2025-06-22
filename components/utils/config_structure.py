@@ -3,7 +3,8 @@ EXPECTED_CONFIGURATION_STRUCTURE = {
     'motor_file': str,
     'timestep_size': (float, int),
     'mass_range': [(float, int), (float, int)],
-    'cutoff_displacement': [(float, int), (float, int)],
+    'arithmetic_precision': int,
+    'takeoff_displacement': (float, int),
     'setpoint_parameters': {
         'velocity': (None, float, int),
         'voltage': (None, float, int),

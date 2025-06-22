@@ -37,7 +37,7 @@ class ParallelBinaryOptimizer:
         self.thrust_counters = list()
         self.drag_counters = list()
 
-        self.main_progress_indicator = tqdm.tqdm(bar_format='{desc} | Elapsed: {elapsed} | Epoch: {n}', desc=f'Optimizing for MTOW | Config: -', position=0, leave=True)
+        self.main_progress_indicator = tqdm.tqdm(bar_format='{desc} | Elapsed: {elapsed} | Epoch: {n}', desc=f'Optimizing for MTOW | Config: -', position=0, initial=1, leave=True)
         self.progress_bars = list()
         
         for i in range(self.n_processes):
@@ -66,8 +66,8 @@ class ParallelBinaryOptimizer:
         maximum = run_configuration.mass_range[1]
 
         config_identifier = run_configuration.identifier
-        config_masses = f'({", ".join(f"{mass_bound:.16f}" for mass_bound in run_configuration.mass_range)})'
-        config_displacements = f'({", ".join(f"{displacement_bound:.16f}" for displacement_bound in run_configuration.cutoff_displacement)})'
+        config_masses = f'[{", ".join(f"{mass_bound:.{run_configuration.arithmetic_precision}f}" for mass_bound in run_configuration.mass_range)}]'
+        config_displacements = run_configuration.takeoff_displacement
         
         self.main_progress_indicator.set_description_str(
             f'Optimizing for MTOW | Config[{config_identifier}]: m={config_masses} kg ~ x={config_displacements} m'
@@ -78,7 +78,7 @@ class ParallelBinaryOptimizer:
             processes: list[multiprocessing.Process] = list()
 
             PROCESS_PADDING = len(str(self.n_processes-1))
-            MASS_PADDING = max([len(f'{mass:.16f}') for mass in MASS_SPACE])
+            MASS_PADDING = max([len(f'{mass:.{run_configuration.arithmetic_precision}f}') for mass in MASS_SPACE])
             
             for i in range(self.n_processes):
                 self.status_counters[i].value = 0
@@ -89,8 +89,8 @@ class ParallelBinaryOptimizer:
                 self.thrust_counters[i].value = 0
                 self.drag_counters[i].value = 0
                 
-                self.progress_bars[i].total = run_configuration.cutoff_displacement[0]
-                self.progress_bars[i].set_description_str(f'Process {i:>{PROCESS_PADDING}} | m = {MASS_SPACE[i]:>{MASS_PADDING}.16f} kg | [{ProcessStatus.FORKING_PROCESS}]')
+                self.progress_bars[i].total = run_configuration.takeoff_displacement
+                self.progress_bars[i].set_description_str(f'Process {i:>{PROCESS_PADDING}} | m = {MASS_SPACE[i]:>{MASS_PADDING}.{run_configuration.arithmetic_precision}f} kg | [{ProcessStatus.FORKING_PROCESS}]')
                 self.progress_bars[i].set_postfix_str(f't = 0 s | x = 0 m | v = 0 m/s | a = 0 m/s^2 | T = 0 N | D = 0 N')
                 
                 processes.append(
@@ -125,10 +125,10 @@ class ParallelBinaryOptimizer:
                 
                 for i in range(self.n_processes):
                     with self.status_counters[i].get_lock():
-                        self.progress_bars[i].set_description_str(f'Process {i:>{PROCESS_PADDING}} | m = {MASS_SPACE[i]:>{MASS_PADDING}.16f} kg | [{ProcessStatus.get(self.status_counters[i].value)}]')
+                        self.progress_bars[i].set_description_str(f'Process {i:>{PROCESS_PADDING}} | m = {MASS_SPACE[i]:>{MASS_PADDING}.{run_configuration.arithmetic_precision}f} kg | [{ProcessStatus.get(self.status_counters[i].value)}]')
                     with self.position_counters[i].get_lock():
-                        self.progress_bars[i].n = min(self.position_counters[i].value, run_configuration.cutoff_displacement[0])
-                        self.progress_bars[i].last_print_n = min(self.position_counters[i].value, run_configuration.cutoff_displacement[0])
+                        self.progress_bars[i].n = min(self.position_counters[i].value, run_configuration.takeoff_displacement)
+                        self.progress_bars[i].last_print_n = min(self.position_counters[i].value, run_configuration.takeoff_displacement)
                         with self.velocity_counters[i].get_lock():
                             with self.acceleration_counters[i].get_lock():
                                 with self.time_counters[i].get_lock():
@@ -166,7 +166,7 @@ class ParallelBinaryOptimizer:
             for process in processes:
                 process.join()
             
-            old_minimum, old_maximum = minimum, maximum
+            old_minimum, old_maximum = f'{minimum:.{run_configuration.arithmetic_precision}f}', f'{maximum:.{run_configuration.arithmetic_precision}f}'
             
             for i in range(self.n_processes):
                 if self.status_counters[i].value == ProcessStatus.SUCCESS_TAKEOFF.value and MASS_SPACE[i] >= minimum:
@@ -177,18 +177,14 @@ class ParallelBinaryOptimizer:
                 if self.status_counters[j].value > ProcessStatus.SUCCESS_TAKEOFF.value and MASS_SPACE[j] <= maximum:
                     maximum = MASS_SPACE[j]
             
+            new_minimum, new_maximum = f'{minimum:.{run_configuration.arithmetic_precision}f}', f'{maximum:.{run_configuration.arithmetic_precision}f}'
+            
             if process_with_maximum_accepted_mass is None:
                 return self.cleanup_return(ResultState.MASS_LOWERBOUND_BEYOND_MTOM)
-            else:
-                takeoff_above_cutoff_lowerbound = self.position_counters[process_with_maximum_accepted_mass].value > run_configuration.cutoff_displacement[0]
-                takeoff_below_cutoff_upperbound = self.position_counters[process_with_maximum_accepted_mass].value < run_configuration.cutoff_displacement[1]
-            
             if process_with_maximum_accepted_mass == self.n_processes-1:
                 return self.cleanup_return(ResultState.MASS_UPPERBOUND_BELOW_MTOM, MASS_SPACE[process_with_maximum_accepted_mass], run_configuration)
-            elif takeoff_above_cutoff_lowerbound and takeoff_below_cutoff_upperbound:
-                return self.cleanup_return(ResultState.MTOM_PASSED_TOLERANCE, MASS_SPACE[process_with_maximum_accepted_mass], run_configuration)
-            elif old_minimum == minimum and old_maximum == maximum:
-                return self.cleanup_return(ResultState.MTOM_FAILED_TOLERANCE, MASS_SPACE[0], run_configuration)
+            elif old_minimum == new_minimum and old_maximum == new_maximum:
+                return self.cleanup_return(ResultState.MTOM_FOUND, MASS_SPACE[0], run_configuration)
             
             self.main_progress_indicator.update(1)
     
@@ -200,14 +196,12 @@ class ParallelBinaryOptimizer:
         if result_state == ResultState.MASS_LOWERBOUND_BEYOND_MTOM:
             logging.error(f'MTOM cannot be found within the given range: the minimum mass provided is too high.')
             return
-        elif result_state == ResultState.MTOM_FAILED_TOLERANCE:
-            logging.warning(f'MTOM was found but not within tolerance: simulation timestep size ({run_configuration.timestep_size}) is too large.')
         elif result_state == ResultState.MASS_UPPERBOUND_BELOW_MTOM:
             logging.warning(f'MTOM was only found locally: the maximum mass provided is too low.')
         
         stall_velocity = run_configuration.get_stall_velocity(mass)
         
-        best_run_data = numpy.load(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}.npz')
+        best_run_data = numpy.load(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.{run_configuration.arithmetic_precision}f}.npz')
         time = best_run_data['t'][:-1]
         acceleration = best_run_data['a']
         velocity = best_run_data['v'][:-1]
@@ -215,7 +209,10 @@ class ParallelBinaryOptimizer:
         thrust = best_run_data['T']
         drag = best_run_data['D']
         
-        logging.info(f'STALL_VELOCITY = {stall_velocity:.16f} m/s | MTOM = {mass:.16f} kg | LIFTOFF_DISTANCE = {best_run_data["x"][-1]} m')
+        if position[-1] > run_configuration.takeoff_displacement:
+            logging.warning(f'MTOM found may not be accurate: simulation timestep size ({run_configuration.timestep_size}) is too large.')
+        
+        logging.info(f'STALL_VELOCITY = {stall_velocity:.{run_configuration.arithmetic_precision}f} m/s | MTOM = {mass:.{run_configuration.arithmetic_precision}f} kg | LIFTOFF_DISTANCE = {best_run_data["x"][-1]} m')
         
         run_file_paths = list(pathlib.Path(run_configuration.identifier).rglob('*.npz'))
         
@@ -264,7 +261,7 @@ class ParallelBinaryOptimizer:
 
         axes[2, 1].plot(masses, velocities, label='Final Velocity', color='black')
         axes[2, 1].plot(masses, stall_velocities, label='Stall Velocity', color='red', linestyle='--')
-        axes[2, 1].set_title('Performance Curve')
+        axes[2, 1].set_title('Velocity vs Mass')
         axes[2, 1].set_xlabel('Mass (kg)')
         axes[2, 1].set_ylabel('Velocity (m/s)')
         axes[2, 1].set_xscale('log')
@@ -272,5 +269,5 @@ class ParallelBinaryOptimizer:
         axes[2, 1].legend()
         
         matplotlib.pyplot.tight_layout()
-        matplotlib.pyplot.savefig(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.16f}kg-{stall_velocity:.16f}mps.png', dpi=300)
+        matplotlib.pyplot.savefig(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.{run_configuration.arithmetic_precision}f}kg-{stall_velocity:.{run_configuration.arithmetic_precision}f}mps.png', dpi=300)
         matplotlib.pyplot.close()
