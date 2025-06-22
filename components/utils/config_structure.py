@@ -1,7 +1,7 @@
 EXPECTED_CONFIGURATION_STRUCTURE = {
     'propeller_file': str,
     'motor_file': str,
-    'timestep_resolution': (float, int),
+    'timestep_size': (float, int),
     'mass_range': [(float, int), (float, int)],
     'cutoff_displacement': [(float, int), (float, int)],
     'setpoint_parameters': {

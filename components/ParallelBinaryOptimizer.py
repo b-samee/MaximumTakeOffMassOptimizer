@@ -201,7 +201,7 @@ class ParallelBinaryOptimizer:
             logging.error(f'MTOM cannot be found within the given range: the minimum mass provided is too high.')
             return
         elif result_state == ResultState.MTOM_FAILED_TOLERANCE:
-            logging.warning(f'MTOM was found but not within tolerance: simulation timestep resolution ({run_configuration.timestep_resolution}) is too large.')
+            logging.warning(f'MTOM was found but not within tolerance: simulation timestep size ({run_configuration.timestep_size}) is too large.')
         elif result_state == ResultState.MASS_UPPERBOUND_BELOW_MTOM:
             logging.warning(f'MTOM was only found locally: the maximum mass provided is too low.')
         

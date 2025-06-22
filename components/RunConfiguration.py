@@ -10,7 +10,7 @@ class RunConfiguration:
     variable_drag: bool
     propeller_file: pathlib.Path
     motor_file: pathlib.Path
-    timestep_resolution: numpy.float64
+    timestep_size: numpy.float64
     mass_range: tuple[numpy.float64, numpy.float64]
     cutoff_displacement: tuple[numpy.float64, numpy.float64]
     setpoint_velocity: numpy.float64
@@ -59,7 +59,7 @@ class RunConfiguration:
         if not self.motor_file.exists():
             raise FileNotFoundError(f'motor file "{self.motor_file}" not found')
         
-        self.timestep_resolution = numpy.float64(json_data['timestep_resolution'])
+        self.timestep_size = numpy.float64(json_data['timestep_size'])
 
         self.mass_range = (numpy.float64(json_data['mass_range'][0]), numpy.float64(json_data['mass_range'][1]))
         if self.mass_range[0] > self.mass_range[1]:

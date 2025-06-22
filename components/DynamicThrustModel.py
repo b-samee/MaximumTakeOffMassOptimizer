@@ -49,9 +49,9 @@ class DynamicThrustModel:
                 status_counter.value = ProcessStatus.ITERATING_STATE.value
             
             acceleration.append((thrust[-1]-drag[-1]) / mass)
-            velocity.append(velocity[-1] + acceleration[-1] * run_configuration.timestep_resolution)
-            position.append(position[-1] + velocity[-1] * run_configuration.timestep_resolution)
-            duration.append(duration[-1] + run_configuration.timestep_resolution)
+            velocity.append(velocity[-1] + acceleration[-1] * run_configuration.timestep_size)
+            position.append(position[-1] + velocity[-1] * run_configuration.timestep_size)
+            duration.append(duration[-1] + run_configuration.timestep_size)
             
             with status_counter.get_lock():
                 status_counter.value = ProcessStatus.UPDATING_COUNTS.value
