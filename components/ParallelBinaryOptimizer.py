@@ -162,17 +162,6 @@ class ParallelBinaryOptimizer:
                         f' | '
                         f'D = {local_drag_counters[i]:>{DRAG_COUNTER_PADDING}} N'
                     )
-                
-                first_failure = None
-                for i in range(self.n_processes):
-                    if first_failure is None:
-                        with self.status_counters[i].get_lock():
-                            if self.status_counters[i].value > ProcessStatus.SUCCESS_TAKEOFF.value:
-                                first_failure = i
-                    elif i > first_failure:
-                        with self.status_counters[i].get_lock():
-                            self.status_counters[i].value = ProcessStatus.FAILED_VELOCITY.value
-                        processes[i].terminate()
             
             for process in processes:
                 process.join()

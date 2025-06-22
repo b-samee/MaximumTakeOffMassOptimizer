@@ -29,12 +29,6 @@ class DynamicThrustModel:
         drag = list()
         
         stall_velocity = run_configuration.get_stall_velocity(mass)
-
-        numpy.savez(
-            f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.{run_configuration.arithmetic_precision}f}.npz',
-            stall_velocity=stall_velocity,
-            mass=mass
-        )
         
         while True:
             with status_counter.get_lock():
