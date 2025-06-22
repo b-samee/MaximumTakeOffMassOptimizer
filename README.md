@@ -45,11 +45,11 @@ Each run configuration file represents a plane-environment-constraints scenario 
 
 The `None` value, known as `null` in `json`, is used to indicate to the optimizer that we don't want to provide a value ourselves, instead letting the optimizer figure it out. For `arithmetic_precision`, `null` means the precision should be set to the default of 3. For `setpoint_parameters`, `null` means that the setpoint parameter should be initialized to the default of 0. For `aerodynamic_forces`, `null` means that the aerodynamic parameter should be initialized to the default of 0, except for three cases: for `acceleration_gravity` it is 9.81, for `lift_coefficient` it is 1.0, and for `true_airspeed` the optimizer should dynamically update the velocity to match the plane's current velocity at every step of the simulation.
 
-Three parameters of the configuration work together to affect the duration and quality of the simulation: `timestep_size`, `mass_range`, and `arithmetic_precision`. The smaller the `timestep_size`, the more accurate the simulation output will be but the longer it will take. The tighter the `mass_range` is around the actual MOTM, the faster the simulation, but this requires prior knowledge or a ball-park estimate of the MOTM. As for the `arithmetic_precision`, it controls how much the optimizer should keep pushing for higher masses. A precision of 3 signifies that the nearest gram suffices.
+Three parameters of the configuration work together to affect the duration and quality of the simulation: `timestep_size`, `mass_range`, and `arithmetic_precision`. The smaller the `timestep_size`, the more accurate the simulation output will be but the longer it will take. The tighter the `mass_range` is around the actual MTOM, the faster the simulation, but this requires prior knowledge or a ball-park estimate of the MTOM. As for the `arithmetic_precision`, it controls how much the optimizer should keep pushing for higher masses. A precision of 3 signifies that the nearest gram suffices.
 
 ## Example Use Case
 
-> A plane boasts an `apc14x10e` propeller and a `CobraCM2217-26` motor. The plane must take off by $100\ m$. We seek a MOTM within the nearest gram. The voltage at full throttle is $8.40\ V$. Based on a similar plane, we expect the mass of the plane to be between $0.1\ kg$ and $2.0\ kg$ and its aerodynamic characteristics approximated to be $0.1$ for the drag coefficient, $1.0$ for the lift coefficient, and $0.075\ m^2$ for the reference area. Assume an air density of $1.225\ kg/m^3$, an acceleration due to gravity of $9.81\ m/s^2$, and variable drag.
+> A plane boasts an `apc14x10e` propeller and a `CobraCM2217-26` motor. The plane must take off by $100\ m$. We seek a MTOM within the nearest gram. The voltage at full throttle is $8.40\ V$. Based on a similar plane, we expect the mass of the plane to be between $0.1\ kg$ and $2.0\ kg$ and its aerodynamic characteristics approximated to be $0.1$ for the drag coefficient, $1.0$ for the lift coefficient, and $0.075\ m^2$ for the reference area. Assume an air density of $1.225\ kg/m^3$, an acceleration due to gravity of $9.81\ m/s^2$, and variable drag.
 
 For this problem, the configuration file should look something like the snippet shown below. We set `null` for `true_airspeed` to allow the optimizer to model variable drag, otherwise the drag will be constant. For the `timestep_size`, we should pick values based on our intuition. In this case, we think a `timestep_size` of $0.1\ s$ will suffice.
 
@@ -86,20 +86,20 @@ Running the optimization with the default flags (3 worker processes) displays th
 
 ```bash
 Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed: 00:31 | Epoch: 12
-Process 0 | m = 0.877 kg [t = 11.20 s | x = 100.82 m | v = 13.69 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
-Process 1 | m = 0.877 kg [t = 11.20 s | x = 100.79 m | v = 13.69 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
-Process 2 | m = 0.877 kg [t = 11.20 s | x = 100.76 m | v = 13.69 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+m = 0.877 kg [t = 11.20 s | x = 100.82 m | v = 13.69 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+m = 0.877 kg [t = 11.20 s | x = 100.79 m | v = 13.69 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+m = 0.877 kg [t = 11.20 s | x = 100.76 m | v = 13.69 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
 [WARNING] MTOM found may not be accurate: simulation timestep size (0.1) is too large.
 [INFO] STALL_VELOCITY = 13.681 m/s | MTOM = 0.877 kg | LIFTOFF_DISTANCE = 100.81783505059695 m
 ```
 
-The output demonstrates the importance of the `timestep_size` value. Here, the optimizer is warning us that although a MOTM was found, it may not be accurate as it could only guarantee that the plane is at takeoff by $100.81\ m$, which is above the `takeoff_displacement` we specified. In order to improve our result, let's try decreasing the `timestep_size` to $0.01\ s$. As you can see from the output, the simulation took five times as long and gave us a more accurate result. Though the result is still not perfectly accurate, it suffices for this example, given how close the final liftoff distance was. If the result is deemed unacceptable, we could either further reduce the `timestep_size` and wait longer, or we could reduce the `takeoff_displacement` specified in the configuration file to artificially limit the optimizer.
+The output demonstrates the importance of the `timestep_size` value. Here, the optimizer is warning us that although a MTOM was found, it may not be accurate as it could only guarantee that the plane is at takeoff by $100.81\ m$, which is above the `takeoff_displacement` we specified. In order to improve our result, let's try decreasing the `timestep_size` to $0.01\ s$. As you can see from the output, the simulation took five times as long and gave us a more accurate result. Though the result is still not perfectly accurate, it suffices for this example, given how close the final liftoff distance was. If the result is deemed unacceptable, we could either further reduce the `timestep_size` and wait longer, or we could reduce the `takeoff_displacement` specified in the configuration file to artificially limit the optimizer.
 
 ```bash
 Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed: 04:07 | Epoch: 12
-Process 0 | m = 0.875 kg [t = 11.19 s | x = 100.01 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
-Process 1 | m = 0.875 kg [t = 11.20 s | x = 100.12 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
-Process 2 | m = 0.876 kg [t = 11.20 s | x = 100.09 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+m = 0.875 kg [t = 11.19 s | x = 100.01 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+m = 0.875 kg [t = 11.20 s | x = 100.12 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+m = 0.876 kg [t = 11.20 s | x = 100.09 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
 [WARNING] MTOM found may not be accurate: simulation timestep size (0.01) is too large.
 [INFO] STALL_VELOCITY = 13.667 m/s | MTOM = 0.875 kg | LIFTOFF_DISTANCE = 100.11569937380077 m
 ```
