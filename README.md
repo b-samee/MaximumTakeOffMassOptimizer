@@ -89,7 +89,7 @@ Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed:
 m = 0.877 kg [t = 11.20 s | x = 100.82 m | v = 13.69 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
 m = 0.877 kg [t = 11.20 s | x = 100.79 m | v = 13.69 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
 m = 0.877 kg [t = 11.20 s | x = 100.76 m | v = 13.69 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
-[WARNING] MTOM found may not be accurate: simulation timestep size (0.1) is too large.
+[WARNING] MTOM found may not be accurate: simulation timestep size (0.1) may be too large.
 [INFO] STALL_VELOCITY = 13.681 m/s | MTOM = 0.877 kg | LIFTOFF_DISTANCE = 100.81783505059695 m
 ```
 
@@ -100,7 +100,7 @@ Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed:
 m = 0.875 kg [t = 11.19 s | x = 100.01 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
 m = 0.875 kg [t = 11.20 s | x = 100.12 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
 m = 0.876 kg [t = 11.20 s | x = 100.09 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
-[WARNING] MTOM found may not be accurate: simulation timestep size (0.01) is too large.
+[WARNING] MTOM found may not be accurate: simulation timestep size (0.01) may be too large.
 [INFO] STALL_VELOCITY = 13.667 m/s | MTOM = 0.875 kg | LIFTOFF_DISTANCE = 100.11569937380077 m
 ```
 
@@ -111,7 +111,7 @@ Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed:
 m = 0.875 kg [t = 11.20 s | x = 100.01 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
 m = 0.875 kg [t = 11.20 s | x = 100.01 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
 m = 0.875 kg [t = 11.20 s | x = 100.01 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
-[WARNING] MTOM found may not be accurate: simulation timestep size (0.001) is too large.
+[WARNING] MTOM found may not be accurate: simulation timestep size (0.001) may be too large.
 [INFO] STALL_VELOCITY = 13.667 m/s | MTOM = 0.875 kg | LIFTOFF_DISTANCE = 100.01004340926012 m
 ```
 
