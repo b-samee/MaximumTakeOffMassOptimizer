@@ -10,7 +10,7 @@ import math
 
 from components.RunConfiguration import RunConfiguration
 from components.utils.process_statuses import ProcessStatus
-from components.DynamicThrustModel import DynamicThrustModel
+from components.ConstantMassDynamicsModel import DynamicThrustModel
 from components.utils.result_states import ResultState
 
 class ParallelBinaryOptimizer:

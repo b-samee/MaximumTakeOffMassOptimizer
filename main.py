@@ -4,7 +4,7 @@ import pathlib
 import logging
 
 from components.RunConfiguration import RunConfiguration
-from components.ParallelBinaryOptimizer import ParallelBinaryOptimizer
+from components.MaxTakeOffMassOptimizer import ParallelBinaryOptimizer
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
