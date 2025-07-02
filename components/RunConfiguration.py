@@ -1,5 +1,4 @@
 import pathlib
-import shutil
 import numpy
 import json
 
@@ -31,11 +30,6 @@ class RunConfiguration:
     
     def __init__(self, json_path: pathlib.Path) -> None:
         self.identifier = json_path.stem
-        
-        results_directory = pathlib.Path(self.identifier)
-        if results_directory.exists():
-            shutil.rmtree(results_directory)
-        results_directory.mkdir()
         
         with open(json_path, 'r') as json_file:
             json_data = json.load(json_file)

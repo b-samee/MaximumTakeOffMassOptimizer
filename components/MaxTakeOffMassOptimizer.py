@@ -1,7 +1,6 @@
 import multiprocessing.sharedctypes
 import matplotlib.pyplot
 import multiprocessing
-import pathlib
 import logging
 import ctypes
 import numpy
@@ -24,6 +23,8 @@ class ParallelBinaryOptimizer:
     drag_counters: list[multiprocessing.sharedctypes.Synchronized]
     
     progress_bars: list[tqdm.tqdm]
+
+    results: dict | None
     
     def __init__(self, n_processes: int) -> None:
         self.n_processes = n_processes
@@ -38,6 +39,8 @@ class ParallelBinaryOptimizer:
 
         self.main_progress_indicator = tqdm.tqdm(bar_format='{desc} | Elapsed: {elapsed} | Epoch: {n}', desc=f'Optimizing for MTOW | Config: -', position=0, initial=1, leave=True)
         self.progress_bars = list()
+
+        self.results = None
         
         for i in range(self.n_processes):
             self.status_counters.append(multiprocessing.Value(ctypes.c_byte, 0))
@@ -72,6 +75,9 @@ class ParallelBinaryOptimizer:
             f'Optimizing for MTOW | Config[{config_identifier}]: m={config_masses} kg ~ x={config_displacements} m'
         )
         
+        self.results = dict()
+        results_queue = multiprocessing.Queue(maxsize=self.n_processes)
+        
         while True:
             MASS_SPACE = numpy.linspace(minimum, maximum, self.n_processes)
             MASS_SPACE = numpy.round(MASS_SPACE, run_configuration.arithmetic_precision)
@@ -100,6 +106,8 @@ class ParallelBinaryOptimizer:
                         args=(
                             run_configuration,
                             MASS_SPACE[i],
+                            results_queue,
+                            self.results.get(MASS_SPACE[i], None),
                             self.status_counters[i],
                             self.position_counters[i],
                             self.velocity_counters[i],
@@ -164,6 +172,11 @@ class ParallelBinaryOptimizer:
                         f'D = {local_drag_counters[i]:>{DRAG_COUNTER_PADDING}} N'
                     )
             
+                while not results_queue.empty():
+                    mass, run_data = results_queue.get()
+                    if mass not in self.results:
+                        self.results[mass] = run_data
+            
             for process in processes:
                 process.join()
             
@@ -202,7 +215,7 @@ class ParallelBinaryOptimizer:
         
         stall_velocity = run_configuration.get_stall_velocity(mass)
         
-        best_run_data = numpy.load(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.{run_configuration.arithmetic_precision}f}.npz')
+        best_run_data = self.results[mass]
         time = best_run_data['t'][:-1]
         acceleration = best_run_data['a']
         velocity = best_run_data['v'][:-1]
@@ -215,11 +228,8 @@ class ParallelBinaryOptimizer:
         
         logging.info(f'STALL_VELOCITY = {stall_velocity:.{run_configuration.arithmetic_precision}f} m/s | MTOM = {mass:.{run_configuration.arithmetic_precision}f} kg | LIFTOFF_DISTANCE = {best_run_data["x"][-1]} m')
         
-        run_file_paths = list(pathlib.Path(run_configuration.identifier).rglob('*.npz'))
-        
         performance_characteristics = list()
-        for run_file_path in run_file_paths:
-            run_data = numpy.load(run_file_path)
+        for mass, run_data in self.results.items():
             performance_characteristics.append((run_data['mass'], run_data['stall_velocity'], run_data['v'][-2]))
         
         performance_characteristics.sort(key=lambda e: e[0])
@@ -270,5 +280,5 @@ class ParallelBinaryOptimizer:
         axes[2, 1].legend()
         
         matplotlib.pyplot.tight_layout()
-        matplotlib.pyplot.savefig(f'{run_configuration.identifier}/{run_configuration.identifier}-{mass:.{run_configuration.arithmetic_precision}f}kg-{stall_velocity:.{run_configuration.arithmetic_precision}f}mps.png', dpi=300)
+        matplotlib.pyplot.savefig(f'{run_configuration.identifier}-{mass:.{run_configuration.arithmetic_precision}f}kg-{stall_velocity:.{run_configuration.arithmetic_precision}f}mps.png', dpi=300)
         matplotlib.pyplot.close()
