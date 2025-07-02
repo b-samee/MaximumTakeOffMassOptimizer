@@ -112,7 +112,6 @@ class ParallelBinaryOptimizer:
                             run_configuration,
                             MASS_SPACE[i],
                             results_queue,
-                            self.results.get(MASS_SPACE[i], None),
                             self.status_counters[i],
                             self.position_counters[i],
                             self.velocity_counters[i],

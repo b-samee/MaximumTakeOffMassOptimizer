@@ -14,7 +14,6 @@ class DynamicThrustModel:
         run_configuration: RunConfiguration,
         mass: numpy.float64,
         run_results: dict,
-        previous_results: dict | None,
         status_counter: multiprocessing.sharedctypes.Synchronized,
         position_counter: multiprocessing.sharedctypes.Synchronized,
         velocity_counter: multiprocessing.sharedctypes.Synchronized,
@@ -23,25 +22,6 @@ class DynamicThrustModel:
         thrust_counter: multiprocessing.sharedctypes.Synchronized,
         drag_counter: multiprocessing.sharedctypes.Synchronized
     ) -> None:
-        if previous_results is not None:
-            with status_counter.get_lock():
-                status_counter.value = previous_results['result_status']
-
-            with position_counter.get_lock():
-                with velocity_counter.get_lock():
-                    with acceleration_counter.get_lock():
-                        with time_counter.get_lock():
-                            with thrust_counter.get_lock():
-                                with drag_counter.get_lock():
-                                    position_counter.value = previous_results['x'][-1]
-                                    velocity_counter.value = previous_results['v'][-1]
-                                    acceleration_counter.value = previous_results['a'][-1]
-                                    time_counter.value = previous_results['t'][-1]
-                                    thrust_counter.value = previous_results['T'][-1]
-                                    drag_counter.value = previous_results['D'][-1]
-            
-            return
-        
         duration = [numpy.float64(0.0)]
         acceleration = list()
         velocity = [run_configuration.setpoint_velocity]
@@ -96,7 +76,6 @@ class DynamicThrustModel:
             if position[-1] > run_configuration.takeoff_displacement:
                 with status_counter.get_lock():
                     status_counter.value = ProcessStatus.FAILED_VELOCITY.value if velocity[-1] <= stall_velocity else ProcessStatus.SUCCESS_TAKEOFF.value
-                    result_status = status_counter.value
                 break
         
         run_results.put((mass, {
@@ -106,7 +85,6 @@ class DynamicThrustModel:
             'x': numpy.array(position, dtype=numpy.float64),
             'T': numpy.array(thrust, dtype=numpy.float64),
             'D': numpy.array(drag, dtype=numpy.float64),
-            'result_status': result_status,
             'stall_velocity': stall_velocity,
             'mass': mass
         }))
