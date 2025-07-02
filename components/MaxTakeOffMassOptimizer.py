@@ -280,5 +280,5 @@ class ParallelBinaryOptimizer:
         axes[2, 1].legend()
         
         matplotlib.pyplot.tight_layout()
-        matplotlib.pyplot.savefig(f'{run_configuration.identifier}-{mass:.{run_configuration.arithmetic_precision}f}kg-{stall_velocity:.{run_configuration.arithmetic_precision}f}mps.png', dpi=300)
+        matplotlib.pyplot.savefig(f'{run_configuration.identifier}-dt={run_configuration.timestep_size}-xf={best_run_data["x"][-1]}-m={mass:.{run_configuration.arithmetic_precision}f}-vf={stall_velocity:.{run_configuration.arithmetic_precision}f}.png', dpi=300)
         matplotlib.pyplot.close()
