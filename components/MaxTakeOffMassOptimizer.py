@@ -229,7 +229,7 @@ class ParallelBinaryOptimizer:
         logging.info(f'STALL_VELOCITY = {stall_velocity:.{run_configuration.arithmetic_precision}f} m/s | MTOM = {mass:.{run_configuration.arithmetic_precision}f} kg | LIFTOFF_DISTANCE = {best_run_data["x"][-1]} m')
         
         performance_characteristics = list()
-        for mass, run_data in self.results.items():
+        for run_data in self.results.values():
             performance_characteristics.append((run_data['mass'], run_data['stall_velocity'], run_data['v'][-2]))
         
         performance_characteristics.sort(key=lambda e: e[0])
