@@ -4,7 +4,7 @@ QPROP is an analysis program for predicting the performance of propeller-motor o
 
 ## Requirements and Running
 
-This script was written in Python `3.13.3` and may require a version that is close to run. The script also requires that several packages be installed, which can be conveniently done by running `pip install -r requirements.txt`, assuming no virtual environment is being used for packages. By design, the script also requires a computer with at least 4 **logical processors**. The script is run using the following command:
+This script was written in Python `3.13.3` and may require a version that is close to run. The script also requires that several packages be installed, which can be conveniently done by running `pip install -r requirements.txt`, assuming no virtual environment is being used for packages. By default, the script utilizes all **logical processors** available on the system and requires a system with a central processing unit that boasts at least 4 logical processors. The script is run using the following command:
 
 ```bash
 python main.py -c <config_json_path> [-p n_processes]
