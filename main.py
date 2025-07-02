@@ -4,7 +4,7 @@ import pathlib
 import logging
 
 from components.RunConfiguration import RunConfiguration
-from components.MaxTakeOffMassOptimizer import ParallelBinaryOptimizer
+from components.MaxTakeOffMassOptimizer import MaxTakeOffMassOptimizer
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
@@ -22,7 +22,7 @@ def main() -> None:
         raise FileNotFoundError(f'configuration file does not exist at path "{json_path}"')
     
     n_processes = max(3, min(args.processes, multiprocessing.cpu_count()-1))
-    optimizer = ParallelBinaryOptimizer(n_processes)
+    optimizer = MaxTakeOffMassOptimizer(n_processes)
     
     run_configuration = RunConfiguration(json_path)
     optimizer.run(run_configuration)
