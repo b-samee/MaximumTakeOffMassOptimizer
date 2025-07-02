@@ -78,9 +78,14 @@ class ParallelBinaryOptimizer:
         self.results = dict()
         results_queue = multiprocessing.Queue(maxsize=self.n_processes)
         
+        backup_minimum = numpy.round(numpy.float64(minimum), run_configuration.arithmetic_precision)
+        backup_maximum = numpy.round(numpy.float64(maximum), run_configuration.arithmetic_precision)
+
+        MASS_SPACE = numpy.linspace(minimum, maximum, self.n_processes)
         while True:
-            MASS_SPACE = numpy.linspace(minimum, maximum, self.n_processes)
             MASS_SPACE = numpy.round(MASS_SPACE, run_configuration.arithmetic_precision)
+            if MASS_SPACE[0] in self.results and MASS_SPACE[-1] in self.results:
+                return self.cleanup_return(ResultState.MTOM_FOUND, MASS_SPACE[0], run_configuration)
             
             processes: list[multiprocessing.Process] = list()
 
@@ -180,8 +185,6 @@ class ParallelBinaryOptimizer:
             for process in processes:
                 process.join()
             
-            old_minimum, old_maximum = f'{minimum:.{run_configuration.arithmetic_precision}f}', f'{maximum:.{run_configuration.arithmetic_precision}f}'
-            
             for i in range(self.n_processes):
                 if self.status_counters[i].value == ProcessStatus.SUCCESS_TAKEOFF.value and MASS_SPACE[i] >= minimum:
                     minimum = MASS_SPACE[i]
@@ -191,14 +194,22 @@ class ParallelBinaryOptimizer:
                 if self.status_counters[j].value > ProcessStatus.SUCCESS_TAKEOFF.value and MASS_SPACE[j] <= maximum:
                     maximum = MASS_SPACE[j]
             
-            new_minimum, new_maximum = f'{minimum:.{run_configuration.arithmetic_precision}f}', f'{maximum:.{run_configuration.arithmetic_precision}f}'
-            
             if process_with_maximum_accepted_mass is None:
-                return self.cleanup_return(ResultState.MASS_LOWERBOUND_BEYOND_MTOM)
+                if backup_minimum < MASS_SPACE[0]:
+                    MASS_SPACE = numpy.linspace(backup_minimum, MASS_SPACE[0], self.n_processes+2)[1:-1]
+                    backup_maximum = MASS_SPACE[0]
+                else:
+                    return self.cleanup_return(ResultState.MASS_LOWERBOUND_BEYOND_MTOM)
             if process_with_maximum_accepted_mass == self.n_processes-1:
-                return self.cleanup_return(ResultState.MASS_UPPERBOUND_BELOW_MTOM, MASS_SPACE[process_with_maximum_accepted_mass], run_configuration)
-            elif old_minimum == new_minimum and old_maximum == new_maximum:
-                return self.cleanup_return(ResultState.MTOM_FOUND, MASS_SPACE[0], run_configuration)
+                if backup_maximum > MASS_SPACE[-1]:
+                    MASS_SPACE = numpy.linspace(MASS_SPACE[-1], backup_maximum, self.n_processes+2)[1:-1]
+                    backup_minimum = MASS_SPACE[-1]
+                else:
+                    return self.cleanup_return(ResultState.MASS_UPPERBOUND_BELOW_MTOM, MASS_SPACE[process_with_maximum_accepted_mass], run_configuration)
+            else:
+                MASS_SPACE = numpy.linspace(minimum, maximum, self.n_processes+2)[1:-1]
+                backup_minimum = minimum
+                backup_maximum = maximum
             
             self.main_progress_indicator.update(1)
     
