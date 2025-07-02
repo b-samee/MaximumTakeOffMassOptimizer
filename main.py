@@ -18,9 +18,9 @@ def main() -> None:
     if not json_path.exists():
         raise FileNotFoundError(f'configuration file does not exist at path "{json_path}"')
     
-    n_processes = min(args.processes, multiprocessing.cpu_count()-1)
+    n_processes = min(args.processes, multiprocessing.cpu_count()+1)
     if args.processes > n_processes:
-        raise ValueError(f'number of processes forked ({args.processes}) exceed the number of logical processors remaining for forking ({n_processes})')
+        raise ValueError(f'number of processes forked ({args.processes}) exceed the number of logical processors remaining for forking plus 2 ({n_processes})')
     elif args.processes < 3:
         raise ValueError(f'number of processes forked ({args.processes}) must be at least 3')
     
