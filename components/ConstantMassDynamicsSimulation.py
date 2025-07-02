@@ -7,7 +7,7 @@ import io
 from components.RunConfiguration import RunConfiguration
 from components.utils.process_statuses import ProcessStatus
 
-class ConstantMassDynamicsModel:
+class ConstantMassDynamicsSimulation:
     @classmethod
     def simulate_dynamics_given_mass(
         cls,

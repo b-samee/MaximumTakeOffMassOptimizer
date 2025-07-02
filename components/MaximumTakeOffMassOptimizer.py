@@ -8,10 +8,10 @@ import tqdm
 
 from components.RunConfiguration import RunConfiguration
 from components.utils.process_statuses import ProcessStatus
-from components.ConstantMassDynamicsModel import ConstantMassDynamicsModel
+from components.ConstantMassDynamicsSimulation import ConstantMassDynamicsSimulation
 from components.utils.result_states import ResultState
 
-class MaxTakeOffMassOptimizer:
+class MaximumTakeOffMassOptimizer:
     n_processes: int
     
     status_counters: list[multiprocessing.sharedctypes.Synchronized]
@@ -107,7 +107,7 @@ class MaxTakeOffMassOptimizer:
                 
                 processes.append(
                     multiprocessing.Process(
-                        target=ConstantMassDynamicsModel.simulate_dynamics_given_mass,
+                        target=ConstantMassDynamicsSimulation.simulate_dynamics_given_mass,
                         args=(
                             run_configuration,
                             MASS_SPACE[i],
