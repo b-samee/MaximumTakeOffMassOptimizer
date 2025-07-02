@@ -6,7 +6,6 @@ import logging
 import ctypes
 import numpy
 import tqdm
-import math
 
 from components.RunConfiguration import RunConfiguration
 from components.utils.process_statuses import ProcessStatus
@@ -75,6 +74,8 @@ class ParallelBinaryOptimizer:
         
         while True:
             MASS_SPACE = numpy.linspace(minimum, maximum, self.n_processes)
+            MASS_SPACE = numpy.round(MASS_SPACE, run_configuration.arithmetic_precision)
+            
             processes: list[multiprocessing.Process] = list()
 
             PROCESS_PADDING = len(str(self.n_processes-1))
