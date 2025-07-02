@@ -1,5 +1,4 @@
 import multiprocessing.sharedctypes
-import matplotlib.pyplot
 import multiprocessing
 import logging
 import ctypes
@@ -10,6 +9,7 @@ from components.RunConfiguration import RunConfiguration
 from components.utils.process_statuses import ProcessStatus
 from components.ConstantMassDynamicsSimulation import ConstantMassDynamicsSimulation
 from components.utils.result_states import ResultState
+from components.ConstantMassDynamicsModel import ConstantMassDynamicsModel
 
 class MaximumTakeOffMassOptimizer:
     n_processes: int
@@ -24,7 +24,7 @@ class MaximumTakeOffMassOptimizer:
     
     progress_bars: list[tqdm.tqdm]
 
-    results: dict | None
+    results: dict[numpy.float64, ConstantMassDynamicsModel] | None
     
     def __init__(self, n_processes: int) -> None:
         self.n_processes = n_processes
@@ -177,9 +177,9 @@ class MaximumTakeOffMassOptimizer:
                     )
             
                 while not results_queue.empty():
-                    mass, run_data = results_queue.get()
-                    if mass not in self.results:
-                        self.results[mass] = run_data
+                    dynamics_model: ConstantMassDynamicsModel = results_queue.get()
+                    if dynamics_model.mass not in self.results:
+                        self.results[dynamics_model.mass] = dynamics_model
             
             for process in processes:
                 process.join()
@@ -223,72 +223,11 @@ class MaximumTakeOffMassOptimizer:
         elif result_state == ResultState.MASS_UPPERBOUND_BELOW_MTOM:
             logging.warning(f'MTOM was only found locally: the maximum mass provided is too low.')
         
-        stall_velocity = run_configuration.get_stall_velocity(mass)
+        optimal_dynamics_model = self.results[mass]
         
-        best_run_data = self.results[mass]
-        time = best_run_data['t'][:-1]
-        acceleration = best_run_data['a']
-        velocity = best_run_data['v'][:-1]
-        position = best_run_data['x'][:-1]
-        thrust = best_run_data['T']
-        drag = best_run_data['D']
-        
-        if best_run_data['x'][-1] > run_configuration.takeoff_displacement:
+        if optimal_dynamics_model.get_position_takeoff() > run_configuration.takeoff_displacement:
             logging.warning(f'MTOM found may not be accurate: simulation timestep size ({run_configuration.timestep_size}) may be too large.')
         
-        logging.info(f'STALL_VELOCITY = {stall_velocity:.{run_configuration.arithmetic_precision}f} m/s | MTOM = {mass:.{run_configuration.arithmetic_precision}f} kg | LIFTOFF_DISTANCE = {best_run_data["x"][-1]} m')
+        logging.info(f'STALL_VELOCITY = {optimal_dynamics_model.stall_velocity:.{run_configuration.arithmetic_precision}f} m/s | MTOM = {mass:.{run_configuration.arithmetic_precision}f} kg | LIFTOFF_DISTANCE = {optimal_dynamics_model.get_position_takeoff()} m')
         
-        performance_characteristics = list()
-        for run_data in self.results.values():
-            performance_characteristics.append((run_data['mass'], run_data['stall_velocity'], run_data['v'][-2]))
-        
-        performance_characteristics.sort(key=lambda e: e[0])
-        masses, stall_velocities, velocities = zip(*performance_characteristics)
-        stall_velocities = numpy.array(stall_velocities, dtype=numpy.float64)
-        velocities = numpy.array(velocities, dtype=numpy.float64)
-        masses = numpy.array(masses, dtype=numpy.float64)
-        
-        _, axes = matplotlib.pyplot.subplots(3, 2, figsize=(10, 8))
-        
-        axes[0, 0].plot(time, position, label='Position', color='black')
-        axes[0, 0].set_title('Position vs Time')
-        axes[0, 0].set_xlabel('Time (s)')
-        axes[0, 0].set_ylabel('Position (m)')
-        axes[0, 0].grid(True)
-
-        axes[0, 1].plot(time, velocity, label='Velocity', color='black')
-        axes[0, 1].set_title('Velocity vs Time')
-        axes[0, 1].set_xlabel('Time (s)')
-        axes[0, 1].set_ylabel('Velocity (m/s)')
-        axes[0, 1].grid(True)
-
-        axes[1, 0].plot(time, acceleration, label='Acceleration', color='black')
-        axes[1, 0].set_title('Acceleration vs Time')
-        axes[1, 0].set_xlabel('Time (s)')
-        axes[1, 0].set_ylabel('Acceleration (m/s^2)')
-        axes[1, 0].grid(True)
-
-        axes[1, 1].plot(time, thrust, label='Thrust', color='black')
-        axes[1, 1].set_title('Thrust vs Time')
-        axes[1, 1].set_xlabel('Time (s)')
-        axes[1, 1].set_ylabel('Thrust (N)')
-        axes[1, 1].grid(True)
-
-        axes[2, 0].plot(time, drag, label='Drag', color='black')
-        axes[2, 0].set_title('Drag vs Time')
-        axes[2, 0].set_xlabel('Time (s)')
-        axes[2, 0].set_ylabel('Drag (N)')
-        axes[2, 0].grid(True)
-
-        axes[2, 1].plot(masses, velocities, label='Final Velocity', color='black')
-        axes[2, 1].plot(masses, stall_velocities, label='Stall Velocity', color='red', linestyle='--')
-        axes[2, 1].set_title('Velocity vs Mass')
-        axes[2, 1].set_xlabel('Mass (kg)')
-        axes[2, 1].set_ylabel('Velocity (m/s)')
-        axes[2, 1].set_xscale('log')
-        axes[2, 1].grid(True)
-        axes[2, 1].legend()
-        
-        matplotlib.pyplot.tight_layout()
-        matplotlib.pyplot.savefig(f'{run_configuration.identifier}-dt={run_configuration.timestep_size}-xf={best_run_data["x"][-1]}-m={mass:.{run_configuration.arithmetic_precision}f}-vf={stall_velocity:.{run_configuration.arithmetic_precision}f}.png', dpi=300)
-        matplotlib.pyplot.close()
+        optimal_dynamics_model.plot_model(f'{run_configuration.identifier}-dt={run_configuration.timestep_size}-xf={optimal_dynamics_model.get_position_takeoff()}-m={mass:.{run_configuration.arithmetic_precision}f}-vf={optimal_dynamics_model.get_velocity_takeoff():.{run_configuration.arithmetic_precision}f}', self.results)

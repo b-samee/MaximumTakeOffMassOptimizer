@@ -6,6 +6,7 @@ import io
 
 from components.RunConfiguration import RunConfiguration
 from components.utils.process_statuses import ProcessStatus
+from components.ConstantMassDynamicsModel import ConstantMassDynamicsModel
 
 class ConstantMassDynamicsSimulation:
     @classmethod
@@ -13,7 +14,7 @@ class ConstantMassDynamicsSimulation:
         cls,
         run_configuration: RunConfiguration,
         mass: numpy.float64,
-        run_results: dict,
+        run_results: multiprocessing.Queue,
         status_counter: multiprocessing.sharedctypes.Synchronized,
         position_counter: multiprocessing.sharedctypes.Synchronized,
         velocity_counter: multiprocessing.sharedctypes.Synchronized,
@@ -78,13 +79,13 @@ class ConstantMassDynamicsSimulation:
                     status_counter.value = ProcessStatus.FAILED_VELOCITY.value if velocity[-1] <= stall_velocity else ProcessStatus.SUCCESS_TAKEOFF.value
                 break
         
-        run_results.put((mass, {
-            't': numpy.array(duration, dtype=numpy.float64),
-            'a': numpy.array(acceleration, dtype=numpy.float64),
-            'v': numpy.array(velocity, dtype=numpy.float64),
-            'x': numpy.array(position, dtype=numpy.float64),
-            'T': numpy.array(thrust, dtype=numpy.float64),
-            'D': numpy.array(drag, dtype=numpy.float64),
-            'stall_velocity': stall_velocity,
-            'mass': mass
-        }))
+        run_results.put(ConstantMassDynamicsModel(
+            mass=mass,
+            stall_velocity=stall_velocity,
+            time=duration,
+            acceleration=acceleration,
+            velocity=velocity,
+            position=position,
+            thrust=thrust,
+            drag=drag
+        ))
