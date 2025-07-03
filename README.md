@@ -82,7 +82,7 @@ For this problem, the configuration file should look something like the snippet 
 }
 ```
 
-Running the optimization with the default flags displays the following final output and saves a `png` figure detailing the dynamics as well as the performance of the optimization.
+Crucially, remember that higher parallelism does not always equate to better performance. Practically, the speedup gained from higher parallelization follows a diminishing returns curve that eventually drops sharply at a certain point. This is because parallel execution incurs additional overheads due to synchronization and context switching as well as contending over compute. The benefit of parallelization here is to reduce the size of the mass space (more on this later), but this should be balanced against the nature of the script, the multiprocessing capabilities of the system running the script, as well as the input to the script. We can figure this out through trial and error, but for most cases, running this script with default flags (equivalent to setting an `n_processes` of 3) will give good results. For the above configuration, we get the following final output and a `png` figure detailing the dynamics as well as the performance of the optimization.
 
 ```bash
 Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed: 00:16 | Epoch: 7
