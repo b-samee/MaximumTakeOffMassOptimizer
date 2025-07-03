@@ -22,7 +22,7 @@ class ConstantMassDynamicsModel:
         self.drag = numpy.array(drag, dtype=numpy.float64)
     
     def get_position_takeoff(self) -> numpy.float64:
-        return self.position[-2]
+        return self.position[-1]
     
     def get_velocity_takeoff(self) -> numpy.float64:
         return self.velocity[-2]
