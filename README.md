@@ -93,7 +93,7 @@ m = 0.879 kg [t = 11.20 s | x = 100.67 m | v = 13.68 m/s | a = 0.23 m/s^2 | T = 
 [INFO] STALL_VELOCITY = 13.685 m/s | MTOM = 0.877 kg | LIFTOFF_DISTANCE = 100.78822557094627 m
 ```
 
-The output demonstrates the importance of the `timestep_size` value. Here, the optimizer is warning us that although a MTOM was found, it may not be accurate as it could only guarantee that the plane is at takeoff by $100.78\ m$, which is above the `takeoff_displacement` we specified. In order to improve our result, let's try decreasing the `timestep_size` to $0.01\ s$. As you can see from the output, the simulation took longer to complete and gave us a more accurate result.
+The output demonstrates the importance of the `timestep_size` value. Here, the optimizer is warning us that although a MTOM was found, it may not be accurate as it could only guarantee that the plane is at takeoff by $100.79\ m$, which is above the `takeoff_displacement` we specified. In order to improve our result, let's try decreasing the `timestep_size` to $0.01\ s$. As you can see from the output, the simulation took longer to complete and gave us a more accurate result.
 
 ```bash
 Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed: 04:07 | Epoch: 12
