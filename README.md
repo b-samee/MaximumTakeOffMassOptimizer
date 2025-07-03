@@ -96,12 +96,12 @@ m = 0.879 kg [t = 11.20 s | x = 100.67 m | v = 13.68 m/s | a = 0.23 m/s^2 | T = 
 The output demonstrates the importance of the `timestep_size` value. Here, the optimizer is warning us that although a MTOM was found, it may not be accurate as it could only guarantee that the plane is at takeoff by $100.79\ m$, which is above the `takeoff_displacement` we specified. In order to improve our result, let's try decreasing the `timestep_size` to $0.01\ s$. As you can see from the output, the simulation took longer to complete and gave us a more accurate result.
 
 ```bash
-Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed: 04:07 | Epoch: 12
-m = 0.875 kg [t = 11.19 s | x = 100.01 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed: 02:05 | Epoch: 7
+m = 0.873 kg [t = 11.19 s | x = 100.11 m | v = 13.68 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+m = 0.874 kg [t = 11.19 s | x = 100.05 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
 m = 0.875 kg [t = 11.20 s | x = 100.12 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
-m = 0.876 kg [t = 11.20 s | x = 100.09 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
 [WARNING] MTOM found may not be accurate: simulation timestep size (0.01) may be too large.
-[INFO] STALL_VELOCITY = 13.667 m/s | MTOM = 0.875 kg | LIFTOFF_DISTANCE = 100.11569937380077 m
+[INFO] STALL_VELOCITY = 13.670 m/s | MTOM = 0.875 kg | LIFTOFF_DISTANCE = 100.12313879561361 m
 ```
 
 We've gotten closer, but it seems like decreasing `timestep_size` by the same factor would result in the simulation taking unreasonably long for the amount of benefit remaining to be gained. We could've set the timestep size to $0.001\ s$ from the beginning and left the thing running. But given our current situation, we have other options. We could reduce the `takeoff_displacement` specified in the configuration file to artificially limit the optimizer so that when it does exceed the specified displacement, it is still below $100\ m$. Or we could make the observation that the masses obtained from timestep sizes $0.1\ s$ vs $0.01\ s$ were $0.877\ kg$ vs $0.875\ kg$. And given the 2 gram difference between the two results as well as how close the final recorded liftoff distance was to our configured takeoff displacement, we could estimate that a further 2 gram reduction is safe enough, picking $0.873\ kg$ for what we expect to be the MTOM for a takeoff displacement of exactly $100\ m$. For your convenience, here's the $0.001\ s$ timestep size run. As you can tell, our previous result turned out to be optimal, though our estimate wasn't far behind. But more importantly, we were on the safe side with our estimate.
