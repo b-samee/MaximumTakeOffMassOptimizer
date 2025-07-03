@@ -107,12 +107,12 @@ m = 0.875 kg [t = 11.20 s | x = 100.12 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 
 We've gotten closer, but it seems like decreasing `timestep_size` by the same factor would result in the simulation taking unreasonably long for the amount of benefit remaining to be gained. We could've set the timestep size to $0.001\ s$ from the beginning and left the thing running. But given our current situation, we have other options. We could reduce the `takeoff_displacement` specified in the configuration file to artificially limit the optimizer so that when it does exceed the specified displacement, it is still below $100\ m$. Or we could make the observation that the masses obtained from timestep sizes $0.1\ s$ vs $0.01\ s$ were $0.877\ kg$ vs $0.875\ kg$. And given the 2 gram difference between the two results as well as how close the final recorded liftoff distance was to our configured takeoff displacement, we could estimate that a further 2 gram reduction is safe enough, picking $0.873\ kg$ for what we expect to be the MTOM for a takeoff displacement of exactly $100\ m$. For your convenience, here's the $0.001\ s$ timestep size run. As you can tell, our previous result turned out to be optimal, though our estimate wasn't far behind. But more importantly, we were on the safe side with our estimate.
 
 ```bash
-Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed: 46:13 | Epoch: 13
-m = 0.875 kg [t = 11.20 s | x = 100.01 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
-m = 0.875 kg [t = 11.20 s | x = 100.01 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
-m = 0.875 kg [t = 11.20 s | x = 100.01 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed: 20:46 | Epoch: 7
+m = 0.873 kg [t = 11.19 s | x = 100.00 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+m = 0.874 kg [t = 11.19 s | x = 100.01 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
+m = 0.875 kg [t = 11.20 s | x = 100.00 m | v = 13.67 m/s | a = 0.22 m/s^2 | T = 1.05 N | D = 0.86 N]
 [WARNING] MTOM found may not be accurate: simulation timestep size (0.001) may be too large.
-[INFO] STALL_VELOCITY = 13.667 m/s | MTOM = 0.875 kg | LIFTOFF_DISTANCE = 100.01004340926012 m
+[INFO] STALL_VELOCITY = 13.670 m/s | MTOM = 0.875 kg | LIFTOFF_DISTANCE = 100.00336528617115 m
 ```
 
 The graphs below were obtained from the $0.001\ s$ timestep size run. The bottom-right graph in particular provides a summary of the optimization. The point of intersection of the final velocity and stall velocity curves represents the point beyond which the stall velocity begins to exceed the final velocity, where the mass of the plane leaves it unable to take off by the takeoff displacement.
