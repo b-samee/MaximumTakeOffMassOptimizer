@@ -14,7 +14,7 @@ def main() -> None:
     
     argparser = argparse.ArgumentParser(add_help=False)
     argparser.add_argument('-c', '--config', required=True, type=str, help='Path to the input configuration json file')
-    argparser.add_argument('-p', '--processes', type=int, default=multiprocessing.cpu_count(), help='Amount of processes forked to speedup optimization')
+    argparser.add_argument('-p', '--processes', type=int, default=3, help='Amount of processes forked to speedup optimization')
     args = argparser.parse_args()
     
     json_path = pathlib.Path(args.config)

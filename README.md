@@ -4,7 +4,7 @@ QPROP is an analysis program for predicting the performance of propeller-motor o
 
 ## Requirements and Running
 
-This script was written in Python `3.13.3` and may require a version that is close to run. The script also requires that several packages be installed, which can be conveniently done by running `pip install -r requirements.txt`, assuming no virtual environment is being used for packages. By default, the script utilizes all **logical processors** available on the system and requires a system with a central processing unit that boasts at least 4 logical processors. The script is run using the following command:
+This script was written in Python `3.13.3` and may require a version that is close to run. The script also requires that several packages be installed, which can be conveniently done by running `pip install -r requirements.txt`, assuming no virtual environment is being used for packages. The script requires a system with a central processing unit that boasts at least 4 **logical processors**. By default and at minimum, the script forks 3 worker processes. The script is run using the following command:
 
 ```bash
 python main.py -c <config_json_path> [-p n_processes]
@@ -82,7 +82,7 @@ For this problem, the configuration file should look something like the snippet 
 }
 ```
 
-Running the optimization with the default flags on a machine with 4 logical processors displays the following final output and saves some dynamic analysis plots.
+Running the optimization with the default flags displays the following final output and saves a `png` figure detailing the dynamics as well as the performance of the optimization.
 
 ```bash
 Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed: 00:16 | Epoch: 7
