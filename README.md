@@ -82,7 +82,7 @@ For this problem, the configuration file should look something like the snippet 
 }
 ```
 
-Running the optimization with the default flags (3 worker processes) displays the following final output and saves some dynamic analysis plots.
+Running the optimization with the default flags on a machine with 4 logical processors displays the following final output and saves some dynamic analysis plots.
 
 ```bash
 Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed: 00:31 | Epoch: 12
