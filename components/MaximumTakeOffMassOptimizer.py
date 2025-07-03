@@ -81,10 +81,12 @@ class MaximumTakeOffMassOptimizer:
         backup_minimum = numpy.round(numpy.float64(minimum), run_configuration.arithmetic_precision)
         backup_maximum = numpy.round(numpy.float64(maximum), run_configuration.arithmetic_precision)
 
+        PRECISION_MULTIPLIER = 10**run_configuration.arithmetic_precision
+        
         MASS_SPACE = numpy.linspace(minimum, maximum, self.n_processes)
         while True:
             MASS_SPACE = numpy.round(MASS_SPACE, run_configuration.arithmetic_precision)
-            if MASS_SPACE[0] in self.results and MASS_SPACE[-1] in self.results:
+            if int(MASS_SPACE[-1]*PRECISION_MULTIPLIER)-int(MASS_SPACE[0]*PRECISION_MULTIPLIER) <= 1:
                 return self.cleanup_return(ResultState.MTOM_FOUND, MASS_SPACE[0], run_configuration)
             
             processes: list[multiprocessing.Process] = list()
