@@ -4,7 +4,7 @@ QPROP is an analysis program for predicting the performance of propeller-motor o
 
 ## Requirements and Running
 
-This script was written in Python `3.13.3` and may require a version that is close to run. The script also requires that several packages be installed, which can be conveniently done by running `pip install -r requirements.txt`, assuming no virtual environment is being used for packages. The script requires a system with a central processing unit that boasts at least 4 **logical processors**. By default and at minimum, the script forks 3 worker processes. The script is run using the following command:
+This script was written in Python `3.13.3` and may require a version that is close to run. The script also requires that several packages be installed, which can be conveniently done by running `pip install -r requirements.txt`, assuming no virtual environment is being used for packages. The script requires a system with a central processing unit of at least 4 cores. By default and at minimum, the script forks 3 worker processes. The script is run using the following command:
 
 ```bash
 python main.py -c <config_json_path> [-p n_processes]
@@ -82,7 +82,7 @@ For this problem, the configuration file should look something like the snippet 
 }
 ```
 
-Crucially, remember that higher parallelism does not always equate to better performance. Practically, the speedup gained from higher parallelization follows a diminishing returns curve that eventually drops sharply at a certain point. This is because parallel execution incurs additional overheads due to synchronization and context switching as well as contending over compute. The benefit of parallelization here is to reduce the size of the mass space (more on this later), but this should be balanced against the nature of the script, the multiprocessing capabilities of the system running the script, as well as the input to the script. We can figure this out through trial and error, but for most cases, running this script with default flags (equivalent to setting an `n_processes` of 3) will give good results. For the above configuration, we get the following final output and a `png` figure detailing the dynamics as well as the performance of the optimization.
+For the above configuration, we get the following final output and a `png` figure detailing the dynamics as well as the performance of the optimization.
 
 ```bash
 Optimizing for MTOW | Config[config]: m=[0.100, 2.000] kg ~ x=100.0 m | Elapsed: 00:16 | Epoch: 7
